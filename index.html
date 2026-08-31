@@ -2,11 +2,18 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b0906">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>DHP Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
 /* ============================================================
    DHP STUDIO — token & base
@@ -22,6 +29,7 @@
   --shadow:0 24px 70px rgba(0,0,0,.55);
   --trans:.25s cubic-bezier(.4,0,.2,1);
   --sb-w:232px;
+  --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -199,13 +207,23 @@ input,select,textarea{font-family:inherit}
 }
 .topbar h1{font-family:'Fraunces',serif; font-weight:500; font-size:19px}
 .topbar .sub{font-size:12.5px; color:var(--muted); margin-top:2px}
-.btn-menu{display:none; background:none; border:none; color:var(--text2)}
-.topbar-right{display:flex; align-items:center; gap:10px}
-.logout-btn{
-  display:flex; align-items:center; gap:7px; font-size:13px; color:var(--text2);
-  border:1px solid var(--border); border-radius:var(--r3); padding:8px 13px; transition:all var(--trans);
+.btn-menu{display:none; background:none; border:none; color:var(--text2); -webkit-tap-highlight-color:transparent}
+.topbar-right{display:flex; align-items:center; gap:12px}
+.live-indicator{
+  display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--muted);
+  border:1px solid var(--border); border-radius:99px; padding:6px 12px 6px 10px; user-select:none;
 }
-.logout-btn:hover{border-color:var(--border-hi); color:var(--text)}
+.live-indicator .dot{width:7px;height:7px;border-radius:50%; background:var(--muted); flex-shrink:0; transition:background var(--trans)}
+.live-indicator.on{color:var(--green); border-color:rgba(132,195,154,.3); background:rgba(132,195,154,.06)}
+.live-indicator.on .dot{background:var(--green); box-shadow:0 0 0 0 rgba(132,195,154,.55); animation:livePulse 1.8s infinite}
+.live-indicator.flash .dot{animation:liveFlash .5s ease}
+@keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(132,195,154,.55)}70%{box-shadow:0 0 0 6px rgba(132,195,154,0)}100%{box-shadow:0 0 0 0 rgba(132,195,154,0)}}
+@keyframes liveFlash{0%{transform:scale(1)}40%{transform:scale(1.8);background:var(--gold-hi)}100%{transform:scale(1);background:var(--green)}}
+.logout-btn{
+  display:flex; align-items:center; gap:7px; font-size:13px; font-weight:600; color:var(--red);
+  border:1px solid rgba(226,113,107,.38); background:rgba(226,113,107,.08); border-radius:var(--r3); padding:9px 15px; transition:all var(--trans);
+}
+.logout-btn:hover{border-color:var(--red); background:rgba(226,113,107,.16); color:#fff}
 .logout-btn svg{width:14px;height:14px}
 
 .page-scroll{flex:1; overflow-y:auto; padding:28px}
@@ -221,6 +239,13 @@ input,select,textarea{font-family:inherit}
 .stat-card .value{font-family:'Fraunces',serif; font-size:28px; color:var(--text)}
 .stat-card .value.gold{color:var(--gold-hi)}
 
+.progress-row{display:flex; align-items:center; gap:14px; padding:10px 0}
+.progress-row .pr-label{width:150px; flex-shrink:0; font-size:13px; color:var(--text2)}
+.progress-row .pr-track{flex:1; height:9px; border-radius:99px; background:var(--surface3); overflow:hidden; position:relative}
+.progress-row .pr-fill{height:100%; border-radius:99px; background:linear-gradient(90deg,var(--gold-dk),var(--gold-hi)); transition:width .6s cubic-bezier(.4,0,.2,1)}
+.progress-row .pr-val{width:44px; text-align:right; flex-shrink:0; font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums}
+@media (max-width:760px){ .progress-row{flex-wrap:wrap; gap:6px} .progress-row .pr-label{width:100%; order:1} .progress-row .pr-track{order:3; width:100%} .progress-row .pr-val{order:2; margin-left:auto} }
+
 .panel{background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden}
 .panel-head{
   display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border);
@@ -230,17 +255,24 @@ input,select,textarea{font-family:inherit}
 .panel-tools{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
 
 .btn{
-  display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:var(--r3);
+  display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:10px 17px; border-radius:var(--r3);
   font-size:13.3px; font-weight:600; border:1px solid transparent; transition:all var(--trans);
+  white-space:nowrap; -webkit-tap-highlight-color:transparent;
 }
 .btn svg{width:14px;height:14px}
-.btn-gold{background:var(--gold); color:#1a1408}
-.btn-gold:hover{filter:brightness(1.08)}
-.btn-ghost{background:transparent; border-color:var(--border-hi); color:var(--text2)}
-.btn-ghost:hover{color:var(--text); border-color:var(--gold-hi)}
-.btn-sm{padding:6px 11px; font-size:12.3px}
-.btn-icon{padding:7px; border-radius:var(--r3); border:1px solid var(--border); background:transparent; color:var(--text2)}
-.btn-icon:hover{color:var(--text); border-color:var(--border-hi)}
+.btn-gold{background:linear-gradient(180deg,var(--gold-hi),var(--gold)); color:#1a1408; box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 8px 18px -8px rgba(201,165,112,.55)}
+.btn-gold:hover{filter:brightness(1.06); transform:translateY(-1px); box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 12px 22px -8px rgba(201,165,112,.6)}
+.btn-gold:active{transform:translateY(0) scale(.98)}
+.btn-ghost{background:var(--surface2); border-color:var(--border); color:var(--text2)}
+.btn-ghost:hover{color:var(--text); border-color:var(--gold-hi); background:var(--surface3)}
+.btn-danger{background:transparent; border-color:rgba(226,113,107,.4); color:var(--red)}
+.btn-danger:hover{background:rgba(226,113,107,.1); border-color:var(--red); color:#fff}
+.btn-sm{padding:7px 12px; font-size:12.3px}
+.btn-icon{padding:8px; border-radius:var(--r3); border:1px solid var(--border); background:var(--surface2); color:var(--text2); display:inline-flex; align-items:center; justify-content:center; transition:all var(--trans)}
+.btn-icon:hover{color:var(--text); border-color:var(--border-hi); background:var(--surface3)}
+.btn-icon.danger:hover{color:var(--red); border-color:rgba(226,113,107,.4); background:rgba(226,113,107,.08)}
+.btn-block{width:100%}
+.export-group{display:inline-flex; align-items:center; gap:6px}
 
 .input, select.input, textarea.input{
   width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--r3);
@@ -434,10 +466,91 @@ tbody tr:hover{background:var(--surface2)}
 .divider{height:1px; background:var(--border); margin:22px 0}
 
 @media (max-width:900px){
-  .sidebar{position:fixed; top:0; bottom:0; left:0; z-index:100; transform:translateX(-100%); box-shadow:var(--shadow)}
+  .sidebar{position:fixed; top:0; bottom:0; left:0; z-index:100; transform:translateX(-100%); box-shadow:var(--shadow); width:min(78vw,272px)}
   .sidebar.open{transform:translateX(0)}
   .btn-menu{display:flex}
   .field-2col{grid-template-columns:1fr}
+}
+
+/* ============================================================
+   MOBILE-FRIENDLY OVERHAUL
+   ============================================================ */
+.sidebar-backdrop{
+  position:fixed; inset:0; background:rgba(6,5,3,.55); backdrop-filter:blur(2px); z-index:99;
+  opacity:0; pointer-events:none; transition:opacity var(--trans);
+}
+.sidebar-backdrop.open{opacity:1; pointer-events:auto}
+
+@media (max-width:760px){
+  body{font-size:14px}
+  #app{height:100dvh}
+  .topbar{padding:0 14px; padding-top:var(--safe-top); height:auto; min-height:58px; padding-top:calc(var(--safe-top) + 10px); padding-bottom:10px}
+  .topbar h1{font-size:16.5px}
+  .topbar .sub{display:none}
+  .topbar-right{gap:8px}
+  .live-indicator{padding:6px 9px}
+  .live-indicator span:not(.dot){display:none}
+  .logout-btn{padding:9px 12px}
+  .logout-btn .logout-label{display:none}
+
+  .page-scroll{padding:14px 12px 90px}
+  .grid-cards{grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:18px}
+  .stat-card{padding:14px}
+  .stat-card .value{font-size:21px}
+  .stat-card .label{font-size:11px; margin-bottom:6px}
+
+  .panel-head{padding:14px 14px; flex-direction:column; align-items:stretch}
+  .panel-head h3{font-size:14.5px}
+  .panel-tools{width:100%}
+  .panel-tools .input, .panel-tools select.input, .panel-tools .search-input{width:100% !important}
+  .panel-tools .btn{flex:1}
+
+  .btn{padding:11px 14px; font-size:13px}
+
+  /* ---- table -> stacked card on phones ---- */
+  .table-responsive table thead{position:absolute; left:-9999px; top:-9999px}
+  .table-responsive table, .table-responsive tbody, .table-responsive tr, .table-responsive td{display:block; width:100%}
+  .table-responsive tr{
+    background:var(--surface2); border:1px solid var(--border); border-radius:var(--r2);
+    margin-bottom:12px; padding:6px 4px; overflow:hidden;
+  }
+  .table-responsive tr:hover{background:var(--surface2)}
+  .table-responsive tr.row-empty{background:transparent; border:1px dashed var(--border)}
+  .table-responsive td{
+    border-bottom:1px dashed var(--border); padding:10px 12px; display:flex; align-items:center;
+    justify-content:space-between; gap:12px; font-size:13px; text-align:right;
+  }
+  .table-responsive td:last-child{border-bottom:none}
+  .table-responsive td::before{
+    content:attr(data-label); color:var(--muted); font-size:11.5px; text-transform:uppercase; letter-spacing:.03em;
+    text-align:left; flex-shrink:0;
+  }
+  .table-responsive td[data-label=""]::before, .table-responsive td:not([data-label])::before{content:none}
+  .table-responsive td .icon-btn-row{justify-content:flex-end; width:100%}
+
+  .kanban-wrap{gap:12px; scroll-snap-type:x mandatory}
+  .kcol{min-width:78vw; scroll-snap-align:start}
+
+  .cal-grid{gap:4px}
+  .job-card{padding:12px}
+
+  .modal-overlay{padding:0; align-items:flex-end}
+  .modal-box{
+    max-width:100%; width:100%; max-height:92dvh; border-radius:18px 18px 0 0;
+    border-left:none; border-right:none; border-bottom:none;
+    padding-bottom:var(--safe-bottom);
+  }
+  .modal-overlay.open .modal-box{transform:translateY(0)}
+  .modal-box{transform:translateY(16px)}
+  .modal-foot{flex-direction:column-reverse; gap:8px}
+  .modal-foot .btn{width:100%}
+
+  .field-2col{grid-template-columns:1fr}
+  .stage-step .sl{font-size:9px}
+}
+
+@media (max-width:420px){
+  .grid-cards{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -533,6 +646,7 @@ tbody tr:hover{background:var(--surface2)}
       </a>
     </div>
   </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
   <div class="main">
     <div class="topbar">
@@ -544,9 +658,10 @@ tbody tr:hover{background:var(--surface2)}
         </div>
       </div>
       <div class="topbar-right">
+        <span class="live-indicator" id="liveIndicator" title="Status sinkronisasi live"><span class="dot"></span><span id="liveIndicatorText">Menghubungkan…</span></span>
         <button class="logout-btn" id="btnLogout">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
-          Keluar
+          <span class="logout-label">Keluar</span>
         </button>
       </div>
     </div>
@@ -556,12 +671,29 @@ tbody tr:hover{background:var(--surface2)}
       <!-- ===== DASHBOARD ===== -->
       <section class="page" id="page-dashboard">
         <div class="grid-cards" id="dashStats"></div>
+
+        <div class="panel" style="margin-bottom:20px; padding:20px 20px 6px">
+          <div class="panel-head" style="border:none; padding:0 0 14px">
+            <h3>Progress Saya — Realtime</h3>
+            <span class="live-indicator on" style="padding:5px 10px"><span class="dot"></span><span style="display:inline">Live</span></span>
+          </div>
+          <div id="dashProgress" style="padding-bottom:18px"></div>
+        </div>
+
         <div class="panel">
-          <div class="panel-head"><h3>Aktivitas terbaru</h3></div>
+          <div class="panel-head">
+            <h3>Aktivitas terbaru</h3>
+            <div class="panel-tools export-group">
+              <button class="btn btn-ghost btn-sm" id="btnExportDashExcel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M4 4h16v16H4z"/><path d="m9 9 6 6m0-6-6 6"/></svg>Excel</button>
+              <button class="btn btn-ghost btn-sm" id="btnExportDashPdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>PDF</button>
+            </div>
+          </div>
+          <div class="table-responsive">
           <table>
             <thead><tr><th>Item</th><th>Tipe</th><th>Status</th><th>Update</th></tr></thead>
             <tbody id="dashRecent"><tr class="row-empty"><td colspan="4">Memuat…</td></tr></tbody>
           </table>
+          </div>
         </div>
       </section>
 
@@ -582,6 +714,10 @@ tbody tr:hover{background:var(--surface2)}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M4 6h16M4 12h10M4 18h6"/></svg>
                 Jenis Konten
               </button>
+              <span class="export-group">
+                <button class="btn btn-ghost btn-sm" id="btnExportContentExcel" title="Export bulan ini ke Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M4 4h16v16H4z"/><path d="m9 9 6 6m0-6-6 6"/></svg>Excel</button>
+                <button class="btn btn-ghost btn-sm" id="btnExportContentPdf" title="Export bulan ini ke PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>PDF</button>
+              </span>
               <button class="btn btn-gold" id="btnAddContent">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                 Job Baru
@@ -619,16 +755,22 @@ tbody tr:hover{background:var(--surface2)}
                 <option value="cold">Cold</option>
                 <option value="closing">Closing</option>
               </select>
+              <span class="export-group">
+                <button class="btn btn-ghost btn-sm" id="btnExportCrmExcel" title="Export ke Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M4 4h16v16H4z"/><path d="m9 9 6 6m0-6-6 6"/></svg>Excel</button>
+                <button class="btn btn-ghost btn-sm" id="btnExportCrmPdf" title="Export ke PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>PDF</button>
+              </span>
               <button class="btn btn-gold" id="btnAddCustomer">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                 Pelanggan Baru
               </button>
             </div>
           </div>
+          <div class="table-responsive">
           <table>
             <thead><tr><th>Nama</th><th>Kontak</th><th>Status</th><th>Follow up terakhir</th><th></th></tr></thead>
             <tbody id="crmTableBody"><tr class="row-empty"><td colspan="5">Memuat…</td></tr></tbody>
           </table>
+          </div>
         </div>
       </section>
 
@@ -637,6 +779,10 @@ tbody tr:hover{background:var(--surface2)}
         <div class="panel-head" style="border:none;padding:0 0 16px">
           <h3 class="serif" style="font-size:16px">Papan Tugas Desain &amp; Video</h3>
           <div class="panel-tools">
+            <span class="export-group">
+              <button class="btn btn-ghost btn-sm" id="btnExportDesignExcel" title="Export ke Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M4 4h16v16H4z"/><path d="m9 9 6 6m0-6-6 6"/></svg>Excel</button>
+              <button class="btn btn-ghost btn-sm" id="btnExportDesignPdf" title="Export ke PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>PDF</button>
+            </span>
             <button class="btn btn-gold" id="btnAddDesign">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
               Tugas Baru
@@ -661,16 +807,22 @@ tbody tr:hover{background:var(--surface2)}
                 <option value="content">Konten</option>
                 <option value="design">Desain/Video</option>
               </select>
+              <span class="export-group">
+                <button class="btn btn-ghost btn-sm" id="btnExportWorklogExcel" title="Export ke Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M4 4h16v16H4z"/><path d="m9 9 6 6m0-6-6 6"/></svg>Excel</button>
+                <button class="btn btn-ghost btn-sm" id="btnExportWorklogPdf" title="Export ke PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>PDF</button>
+              </span>
               <button class="btn btn-gold" id="btnAddWorklog">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                 Catat Hasil
               </button>
             </div>
           </div>
+          <div class="table-responsive">
           <table>
             <thead><tr><th>Judul</th><th>Tipe</th><th>Platform</th><th>Tanggal</th><th>Views</th><th>Likes</th><th>Komentar</th><th id="wlOwnerHead" style="display:none">Oleh</th><th></th></tr></thead>
             <tbody id="worklogTableBody"><tr class="row-empty"><td colspan="9">Memuat…</td></tr></tbody>
           </table>
+          </div>
         </div>
       </section>
 
@@ -688,16 +840,22 @@ tbody tr:hover{background:var(--surface2)}
                 <option value="shopee">Shopee</option>
                 <option value="lainnya">Lainnya</option>
               </select>
+              <span class="export-group">
+                <button class="btn btn-ghost btn-sm" id="btnExportAffExcel" title="Export ke Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M4 4h16v16H4z"/><path d="m9 9 6 6m0-6-6 6"/></svg>Excel</button>
+                <button class="btn btn-ghost btn-sm" id="btnExportAffPdf" title="Export ke PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>PDF</button>
+              </span>
               <button class="btn btn-gold" id="btnAddAffiliate">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                 Afiliator Baru
               </button>
             </div>
           </div>
+          <div class="table-responsive">
           <table>
             <thead><tr><th>Nama</th><th>Platform</th><th>Tier</th><th>Komisi</th><th>Total GMV</th><th>Status</th><th></th></tr></thead>
             <tbody id="affTableBody"><tr class="row-empty"><td colspan="7">Memuat…</td></tr></tbody>
           </table>
+          </div>
         </div>
         <div class="panel">
           <div class="panel-head">
@@ -710,12 +868,18 @@ tbody tr:hover{background:var(--surface2)}
                 <option value="tayang">Tayang</option>
                 <option value="selesai">Selesai</option>
               </select>
+              <span class="export-group">
+                <button class="btn btn-ghost btn-sm" id="btnExportCollabExcel" title="Export ke Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M4 4h16v16H4z"/><path d="m9 9 6 6m0-6-6 6"/></svg>Excel</button>
+                <button class="btn btn-ghost btn-sm" id="btnExportCollabPdf" title="Export ke PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>PDF</button>
+              </span>
             </div>
           </div>
+          <div class="table-responsive">
           <table>
             <thead><tr><th>Afiliator</th><th>Judul Konten</th><th>Tanggal</th><th>GMV</th><th>Komisi</th><th>Status</th><th></th></tr></thead>
             <tbody id="collabTableBody"><tr class="row-empty"><td colspan="7">Memuat…</td></tr></tbody>
           </table>
+          </div>
         </div>
       </section>
 
@@ -727,16 +891,22 @@ tbody tr:hover{background:var(--surface2)}
             <h3>Anggaran &amp; Realisasi</h3>
             <div class="panel-tools">
               <input class="input" type="month" id="budgetFilterMonth" style="width:150px">
+              <span class="export-group">
+                <button class="btn btn-ghost btn-sm" id="btnExportBudgetExcel" title="Export ke Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M4 4h16v16H4z"/><path d="m9 9 6 6m0-6-6 6"/></svg>Excel</button>
+                <button class="btn btn-ghost btn-sm" id="btnExportBudgetPdf" title="Export ke PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>PDF</button>
+              </span>
               <button class="btn btn-gold" id="btnAddBudget">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                 Campaign Baru
               </button>
             </div>
           </div>
+          <div class="table-responsive">
           <table>
             <thead><tr><th>Campaign</th><th>Platform</th><th>Budget</th><th>Realisasi</th><th>Sisa</th><th>Terpakai</th><th></th></tr></thead>
             <tbody id="budgetTableBody"><tr class="row-empty"><td colspan="7">Memuat…</td></tr></tbody>
           </table>
+          </div>
         </div>
       </section>
 
@@ -744,10 +914,12 @@ tbody tr:hover{background:var(--surface2)}
       <section class="page" id="page-team">
         <div class="panel">
           <div class="panel-head"><h3>Anggota Tim</h3></div>
+          <div class="table-responsive">
           <table>
             <thead><tr><th>Nama</th><th>Username</th><th>Role</th></tr></thead>
             <tbody id="teamTableBody"><tr class="row-empty"><td colspan="3">Memuat…</td></tr></tbody>
           </table>
+          </div>
         </div>
       </section>
 
@@ -1312,6 +1484,7 @@ function clearSession(){
 }
 
 document.getElementById("btnLogout").addEventListener("click", () => {
+  teardownRealtime();
   clearSession();
   CURRENT_USER = null;
   document.getElementById("app").hidden = true;
@@ -1336,6 +1509,7 @@ async function bootApp(user){
   renderNav();
   await loadTeam();
   goPage("dashboard");
+  setupRealtime();
 }
 
 function initials(name){
@@ -1359,6 +1533,7 @@ function goPage(id){
   document.getElementById("pageTitle").textContent = PAGE_META[id]?.title || id;
   document.getElementById("pageSub").textContent = PAGE_META[id]?.sub || "";
   document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarBackdrop").classList.remove("open");
 
   if (id === "dashboard") loadDashboard();
   if (id === "content") loadContent();
@@ -1371,7 +1546,14 @@ function goPage(id){
   if (id === "profile") loadProfile();
 }
 
-document.getElementById("btnMenu").addEventListener("click", () => document.getElementById("sidebar").classList.toggle("open"));
+document.getElementById("btnMenu").addEventListener("click", () => {
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebarBackdrop").classList.toggle("open");
+});
+document.getElementById("sidebarBackdrop").addEventListener("click", () => {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarBackdrop").classList.remove("open");
+});
 document.getElementById("userChipBtn").addEventListener("click", () => goPage("profile"));
 
 /* ============================================================
@@ -1393,12 +1575,12 @@ function loadTeamPage(){
   if (!TEAM.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="3">Belum ada data tim</td></tr>`; return; }
   tbody.innerHTML = TEAM.map(u => `
     <tr>
-      <td style="display:flex;align-items:center;gap:10px">
+      <td data-label="Nama" style="display:flex;align-items:center;gap:10px">
         <div class="avatar" style="width:26px;height:26px;font-size:11px;background:${u.avatar_color||'#c9a570'}">${initials(u.display_name)}</div>
         ${escapeHtml(u.display_name)}
       </td>
-      <td>${escapeHtml(u.username)}</td>
-      <td><span class="badge badge-muted">${ROLE_LABEL[u.role]||u.role}</span></td>
+      <td data-label="Username">${escapeHtml(u.username)}</td>
+      <td data-label="Role"><span class="badge badge-muted">${ROLE_LABEL[u.role]||u.role}</span></td>
     </tr>
   `).join("");
 }
@@ -1412,11 +1594,18 @@ function nameOf(id){ return TEAM.find(u => u.id === id)?.display_name || "—"; 
 /* ============================================================
    DASHBOARD
    ============================================================ */
+let DASH_RECENT_VISIBLE = [];
+function progressBar(label, value, total){
+  const pct = total ? Math.round((value/total)*100) : 0;
+  return `<div class="progress-row"><div class="pr-label">${escapeHtml(label)}</div><div class="pr-track"><div class="pr-fill" style="width:${pct}%"></div></div><div class="pr-val">${pct}% <span style="color:var(--text2)">(${value})</span></div></div>`;
+}
 async function loadDashboard(){
   const stats = document.getElementById("dashStats");
   const recent = document.getElementById("dashRecent");
+  const progEl = document.getElementById("dashProgress");
   stats.innerHTML = "";
   recent.innerHTML = `<tr class="row-empty"><td colspan="4">Memuat…</td></tr>`;
+  progEl.innerHTML = `<div style="color:var(--muted); font-size:13px; padding:8px 0">Memuat progress…</div>`;
 
   let cards = [];
   let rows = [];
@@ -1438,6 +1627,10 @@ async function loadDashboard(){
       ...cpList.slice(0,4).map(c => ({item:c.title, tipe:"Konten", status:c.status, waktu:c.updated_at})),
       ...dtList.slice(0,4).map(d => ({item:d.title, tipe:"Desain/Video", status:d.status, waktu:d.updated_at})),
     ].sort((a,b)=> new Date(b.waktu)-new Date(a.waktu)).slice(0,6);
+
+    const totalCp = cpList.length || 1;
+    progEl.innerHTML = PROGRESS_STAGES.map(s => progressBar(s.label, cpList.filter(c=>c.progress_stage===s.id).length, totalCp)).join("")
+      || `<div style="color:var(--muted); font-size:13px; padding:8px 0">Belum ada data konten</div>`;
   }
 
   if (CURRENT_USER.role === "content_creator") {
@@ -1450,6 +1643,10 @@ async function loadDashboard(){
       { label:"Selesai", value: list.filter(c=>c.status==="selesai").length },
     ];
     rows = list.slice(0,6).map(c => ({item:c.title, tipe:c.platform, status:c.status, waktu:c.updated_at}));
+
+    const total = list.length || 1;
+    progEl.innerHTML = PROGRESS_STAGES.map(s => progressBar(s.label, list.filter(c=>c.progress_stage===s.id).length, total)).join("")
+      || `<div style="color:var(--muted); font-size:13px; padding:8px 0">Belum ada tugas konten untukmu</div>`;
   }
 
   if (CURRENT_USER.role === "desain_grafis") {
@@ -1462,12 +1659,17 @@ async function loadDashboard(){
       { label:"Selesai", value: list.filter(d=>d.status==="selesai").length },
     ];
     rows = list.slice(0,6).map(d => ({item:d.title, tipe:d.task_type, status:d.status, waktu:d.updated_at}));
+
+    const total = list.length || 1;
+    progEl.innerHTML = DESIGN_COLS.map(c => progressBar(c.label, list.filter(d=>d.status===c.id).length, total)).join("")
+      || `<div style="color:var(--muted); font-size:13px; padding:8px 0">Belum ada tugas desain untukmu</div>`;
   }
 
   stats.innerHTML = cards.map(c => `<div class="stat-card"><div class="label">${c.label}</div><div class="value gold">${c.value}</div></div>`).join("");
   recent.innerHTML = rows.length ? rows.map(r => `
-    <tr><td>${escapeHtml(r.item)}</td><td>${escapeHtml(r.tipe)}</td><td>${statusBadge(r.status)}</td><td>${timeAgo(r.waktu)}</td></tr>
+    <tr><td data-label="Item">${escapeHtml(r.item)}</td><td data-label="Tipe">${escapeHtml(r.tipe)}</td><td data-label="Status">${statusBadge(r.status)}</td><td data-label="Update">${timeAgo(r.waktu)}</td></tr>
   `).join("") : `<tr class="row-empty"><td colspan="4">Belum ada aktivitas</td></tr>`;
+  DASH_RECENT_VISIBLE = rows;
 }
 
 function statusBadge(status){
@@ -1833,14 +2035,14 @@ function renderCrmTable(){
   if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="5">Belum ada pelanggan</td></tr>`; return; }
   tbody.innerHTML = list.map(c => `
     <tr>
-      <td>${escapeHtml(c.name)}</td>
-      <td>${escapeHtml(c.phone)}</td>
-      <td>${statusBadge(c.status)}</td>
-      <td>
+      <td data-label="Nama">${escapeHtml(c.name)}</td>
+      <td data-label="Kontak">${escapeHtml(c.phone)}</td>
+      <td data-label="Status">${statusBadge(c.status)}</td>
+      <td data-label="Follow up">
         ${c.last_followup_at ? timeAgo(c.last_followup_at) : "Belum pernah"}
         ${needsFollowup(c) ? `<span class="badge badge-red" style="margin-left:6px"><span class="dot"></span>Perlu follow up</span>` : ""}
       </td>
-      <td>
+      <td data-label="">
         <div class="icon-btn-row">
           <button class="btn-icon" data-followup="${c.id}" title="Follow up">${iconWa()}</button>
           <button class="btn-icon" data-history="${c.id}" title="Riwayat follow up">${iconHistory()}</button>
@@ -1852,7 +2054,9 @@ function renderCrmTable(){
   tbody.querySelectorAll("[data-edit-customer]").forEach(b => b.addEventListener("click", () => openCustomerModal(b.dataset.editCustomer)));
   tbody.querySelectorAll("[data-followup]").forEach(b => b.addEventListener("click", () => openFollowupModal(b.dataset.followup)));
   tbody.querySelectorAll("[data-history]").forEach(b => b.addEventListener("click", () => openFollowupHistory(b.dataset.history)));
+  CRM_VISIBLE = list;
 }
+let CRM_VISIBLE = [];
 
 async function openFollowupHistory(customerId){
   const customer = CRM_CACHE.find(c => c.id === customerId);
@@ -2070,15 +2274,15 @@ function renderWorklogTable(){
   if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="9">Belum ada log</td></tr>`; return; }
   tbody.innerHTML = list.map(l => `
     <tr>
-      <td>${escapeHtml(l.title)}</td>
-      <td><span class="badge ${l.work_type==='design'?'badge-blue':'badge-gold'}">${l.work_type==='design'?'Desain/Video':'Konten'}</span></td>
-      <td style="text-transform:capitalize">${escapeHtml(l.platform||'—')}</td>
-      <td>${fmtDate(l.output_date)}</td>
-      <td>${l.metric_views||0}</td>
-      <td>${l.metric_likes||0}</td>
-      <td>${l.metric_comments||0}</td>
-      <td style="display:${isMod?'':'none'}">${escapeHtml(nameOf(l.user_id))}</td>
-      <td>
+      <td data-label="Judul">${escapeHtml(l.title)}</td>
+      <td data-label="Tipe"><span class="badge ${l.work_type==='design'?'badge-blue':'badge-gold'}">${l.work_type==='design'?'Desain/Video':'Konten'}</span></td>
+      <td data-label="Platform" style="text-transform:capitalize">${escapeHtml(l.platform||'—')}</td>
+      <td data-label="Tanggal">${fmtDate(l.output_date)}</td>
+      <td data-label="Views">${l.metric_views||0}</td>
+      <td data-label="Likes">${l.metric_likes||0}</td>
+      <td data-label="Komentar">${l.metric_comments||0}</td>
+      <td data-label="Oleh" style="display:${isMod?'':'none'}">${escapeHtml(nameOf(l.user_id))}</td>
+      <td data-label="">
         <div class="icon-btn-row">
           ${l.link_url ? `<a class="btn-icon" href="${escapeHtml(l.link_url)}" target="_blank" title="Buka link">${iconLink()}</a>` : ""}
           ${(!isMod && l.user_id===CURRENT_USER.id) ? `<button class="btn-icon" data-edit-worklog="${l.id}" title="Edit">${iconEdit()}</button>` : ""}
@@ -2087,7 +2291,9 @@ function renderWorklogTable(){
     </tr>
   `).join("");
   tbody.querySelectorAll("[data-edit-worklog]").forEach(b => b.addEventListener("click", () => openWorklogModal(b.dataset.editWorklog)));
+  WORKLOG_VISIBLE = list;
 }
+let WORKLOG_VISIBLE = [];
 document.getElementById("btnAddWorklog").addEventListener("click", () => openWorklogModal());
 function openWorklogModal(id){
   const l = id ? WORKLOG_CACHE.find(x => x.id === id) : null;
@@ -2180,13 +2386,13 @@ function renderAffiliateTable(){
   if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="7">Belum ada afiliator</td></tr>`; return; }
   tbody.innerHTML = list.map(a => `
     <tr>
-      <td>${escapeHtml(a.name)}</td>
-      <td style="text-transform:capitalize">${escapeHtml(a.platform)}</td>
-      <td><span class="badge badge-gold">${a.tier}</span></td>
-      <td>${a.commission_rate}%</td>
-      <td>${fmtRupiah(gmvOf(a.id))}</td>
-      <td><span class="badge ${a.status==='aktif'?'badge-green':'badge-muted'}"><span class="dot"></span>${a.status==='aktif'?'Aktif':'Nonaktif'}</span></td>
-      <td>
+      <td data-label="Nama">${escapeHtml(a.name)}</td>
+      <td data-label="Platform" style="text-transform:capitalize">${escapeHtml(a.platform)}</td>
+      <td data-label="Tier"><span class="badge badge-gold">${a.tier}</span></td>
+      <td data-label="Komisi">${a.commission_rate}%</td>
+      <td data-label="Total GMV">${fmtRupiah(gmvOf(a.id))}</td>
+      <td data-label="Status"><span class="badge ${a.status==='aktif'?'badge-green':'badge-muted'}"><span class="dot"></span>${a.status==='aktif'?'Aktif':'Nonaktif'}</span></td>
+      <td data-label="">
         <div class="icon-btn-row">
           <button class="btn-icon" data-add-collab="${a.id}" title="Tambah kolaborasi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
           <button class="btn-icon" data-edit-affiliate="${a.id}" title="Edit">${iconEdit()}</button>
@@ -2196,7 +2402,9 @@ function renderAffiliateTable(){
   `).join("");
   tbody.querySelectorAll("[data-edit-affiliate]").forEach(b => b.addEventListener("click", () => openAffiliateModal(b.dataset.editAffiliate)));
   tbody.querySelectorAll("[data-add-collab]").forEach(b => b.addEventListener("click", () => openCollabModal(null, b.dataset.addCollab)));
+  AFF_VISIBLE = list;
 }
+let AFF_VISIBLE = [];
 document.getElementById("btnAddAffiliate").addEventListener("click", () => openAffiliateModal());
 function openAffiliateModal(id){
   const a = id ? AFFILIATE_CACHE.find(x => x.id === id) : null;
@@ -2246,13 +2454,13 @@ function renderCollabTable(){
   if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="7">Belum ada kolaborasi</td></tr>`; return; }
   tbody.innerHTML = list.slice(0,50).map(c => `
     <tr>
-      <td>${escapeHtml(affiliateName(c.affiliate_id))}</td>
-      <td>${escapeHtml(c.title)}</td>
-      <td>${fmtDate(c.collab_date)}</td>
-      <td>${fmtRupiah(c.gmv)}</td>
-      <td>${fmtRupiah(c.commission_amount)}</td>
-      <td>${collabStatusBadge(c.status)}</td>
-      <td>
+      <td data-label="Afiliator">${escapeHtml(affiliateName(c.affiliate_id))}</td>
+      <td data-label="Judul Konten">${escapeHtml(c.title)}</td>
+      <td data-label="Tanggal">${fmtDate(c.collab_date)}</td>
+      <td data-label="GMV">${fmtRupiah(c.gmv)}</td>
+      <td data-label="Komisi">${fmtRupiah(c.commission_amount)}</td>
+      <td data-label="Status">${collabStatusBadge(c.status)}</td>
+      <td data-label="">
         <div class="icon-btn-row">
           <button class="btn-icon" data-edit-collab="${c.id}" title="Edit">${iconEdit()}</button>
         </div>
@@ -2260,7 +2468,9 @@ function renderCollabTable(){
     </tr>
   `).join("");
   tbody.querySelectorAll("[data-edit-collab]").forEach(b => b.addEventListener("click", () => openCollabModal(b.dataset.editCollab)));
+  COLLAB_VISIBLE = list.slice(0,50);
 }
+let COLLAB_VISIBLE = [];
 function collabStatusBadge(status){
   const map = { diajukan:["badge-muted","Diajukan"], proses:["badge-blue","Proses"], tayang:["badge-amber","Tayang"], selesai:["badge-green","Selesai"] };
   const [cls,label] = map[status] || ["badge-muted", status];
@@ -2356,13 +2566,13 @@ function renderBudgetTable(){
     const pctCls = pct >= 100 ? "badge-red" : (pct >= 80 ? "badge-amber" : "badge-green");
     return `
     <tr>
-      <td>${escapeHtml(b.campaign_name)}</td>
-      <td style="text-transform:capitalize">${escapeHtml(b.platform.replace('_',' '))}</td>
-      <td>${fmtRupiah(b.budget_amount)}</td>
-      <td>${fmtRupiah(b.spent_amount)}</td>
-      <td>${fmtRupiah(b.budget_amount-b.spent_amount)}</td>
-      <td><span class="badge ${pctCls}"><span class="dot"></span>${pct}%</span></td>
-      <td>
+      <td data-label="Campaign">${escapeHtml(b.campaign_name)}</td>
+      <td data-label="Platform" style="text-transform:capitalize">${escapeHtml(b.platform.replace('_',' '))}</td>
+      <td data-label="Budget">${fmtRupiah(b.budget_amount)}</td>
+      <td data-label="Realisasi">${fmtRupiah(b.spent_amount)}</td>
+      <td data-label="Sisa">${fmtRupiah(b.budget_amount-b.spent_amount)}</td>
+      <td data-label="Terpakai"><span class="badge ${pctCls}"><span class="dot"></span>${pct}%</span></td>
+      <td data-label="">
         <div class="icon-btn-row">
           <button class="btn-icon" data-edit-budget="${b.id}" title="Edit">${iconEdit()}</button>
         </div>
@@ -2370,7 +2580,9 @@ function renderBudgetTable(){
     </tr>
   `; }).join("");
   tbody.querySelectorAll("[data-edit-budget]").forEach(b => b.addEventListener("click", () => openBudgetModal(b.dataset.editBudget)));
+  BUDGET_VISIBLE = list;
 }
+let BUDGET_VISIBLE = [];
 document.getElementById("btnAddBudget").addEventListener("click", () => openBudgetModal());
 function openBudgetModal(id){
   const b = id ? BUDGET_CACHE.find(x => x.id === id) : null;
@@ -2443,6 +2655,215 @@ document.getElementById("btnSavePass").addEventListener("click", async () => {
   toast("Password berhasil diganti","success");
   document.getElementById("profOldPass").value = ""; document.getElementById("profNewPass").value = "";
 });
+
+/* ============================================================
+   EXPORT — EXCEL & PDF (per modul, rapi & konsisten)
+   ============================================================ */
+function exportExcel(filename, sheetName, headers, rows){
+  if (!rows.length) return toast("Tidak ada data untuk diexport","error");
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  ws["!cols"] = headers.map((h,i) => ({ wch: Math.max(12, h.length+2, ...rows.map(r => String(r[i]??"").length+2)) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0,31));
+  XLSX.writeFile(wb, `${filename}.xlsx`);
+  toast("Excel berhasil diunduh","success");
+}
+function exportPDF(title, headers, rows, filename){
+  if (!rows.length) return toast("Tidak ada data untuk diexport","error");
+  const { jsPDF } = window.jspdf;
+  const landscape = headers.length > 5;
+  const doc = new jsPDF({ orientation: landscape ? "landscape" : "portrait", unit: "pt", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.setTextColor(26,20,8);
+  doc.text("DHP STUDIO", 40, 42);
+  doc.setFont("helvetica","normal"); doc.setFontSize(10.5); doc.setTextColor(90,80,60);
+  doc.text(title, 40, 60);
+  doc.setFontSize(8.5); doc.setTextColor(140,130,110);
+  doc.text(`Dicetak oleh ${CURRENT_USER?.display_name||"—"} · ${new Date().toLocaleString("id-ID")}`, 40, 74);
+  doc.setDrawColor(201,165,112); doc.setLineWidth(1);
+  doc.line(40, 82, pageW-40, 82);
+  doc.autoTable({
+    startY: 94,
+    head: [headers],
+    body: rows,
+    margin: { left: 40, right: 40 },
+    styles: { fontSize: 8.5, cellPadding: 6, textColor: [40,34,24], lineColor: [230,222,205], lineWidth: .5 },
+    headStyles: { fillColor: [26,20,8], textColor: [233,211,164], fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [250,247,240] },
+  });
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i=1; i<=pageCount; i++){
+    doc.setPage(i);
+    doc.setFontSize(8); doc.setTextColor(150,140,120);
+    doc.text(`Halaman ${i} dari ${pageCount}`, pageW-40, doc.internal.pageSize.getHeight()-20, { align:"right" });
+  }
+  doc.save(`${filename}.pdf`);
+  toast("PDF berhasil diunduh","success");
+}
+
+/* ---- Dashboard ---- */
+document.getElementById("btnExportDashExcel").addEventListener("click", () => {
+  exportExcel("dhp-aktivitas-terbaru","Aktivitas",
+    ["Item","Tipe","Status","Terakhir diperbarui"],
+    DASH_RECENT_VISIBLE.map(r => [r.item, r.tipe, r.status, fmtDate((r.waktu||"").slice(0,10))]));
+});
+document.getElementById("btnExportDashPdf").addEventListener("click", () => {
+  exportPDF("Laporan Aktivitas Terbaru",
+    ["Item","Tipe","Status","Terakhir diperbarui"],
+    DASH_RECENT_VISIBLE.map(r => [r.item, r.tipe, r.status, fmtDate((r.waktu||"").slice(0,10))]),
+    "dhp-aktivitas-terbaru");
+});
+
+/* ---- Rencana Konten (bulan yang sedang dilihat di kalender) ---- */
+function contentMonthRows(){
+  const y = CAL_MONTH.getFullYear(), m = CAL_MONTH.getMonth();
+  return CONTENT_CACHE.filter(c => { const d = new Date(c.content_date+"T00:00:00"); return d.getFullYear()===y && d.getMonth()===m; });
+}
+document.getElementById("btnExportContentExcel").addEventListener("click", () => {
+  const rows = contentMonthRows();
+  exportExcel(`dhp-rencana-konten-${ymd(CAL_MONTH).slice(0,7)}`,"Rencana Konten",
+    ["Judul","Tanggal","Jenis Konten","Platform","Tahap","Ditugaskan ke"],
+    rows.map(c => [c.title, fmtDate(c.content_date), c.content_type_name||c.content_type||"—", (c.platforms||[c.platform]).join(", "), stageLabel(c.progress_stage), nameOf(c.assigned_to)]));
+});
+document.getElementById("btnExportContentPdf").addEventListener("click", () => {
+  const rows = contentMonthRows();
+  exportPDF(`Rencana Konten — ${document.getElementById("calMonthLabel").textContent}`,
+    ["Judul","Tanggal","Jenis Konten","Platform","Tahap","Ditugaskan ke"],
+    rows.map(c => [c.title, fmtDate(c.content_date), c.content_type_name||c.content_type||"—", (c.platforms||[c.platform]).join(", "), stageLabel(c.progress_stage), nameOf(c.assigned_to)]),
+    `dhp-rencana-konten-${ymd(CAL_MONTH).slice(0,7)}`);
+});
+
+/* ---- CRM ---- */
+document.getElementById("btnExportCrmExcel").addEventListener("click", () => {
+  exportExcel("dhp-crm-pelanggan","Pelanggan",
+    ["Nama","Kontak","Status","Sumber","Follow up terakhir","Catatan"],
+    CRM_VISIBLE.map(c => [c.name, c.phone, c.status, c.source||"—", c.last_followup_at?fmtDate(c.last_followup_at.slice(0,10)):"Belum pernah", c.notes||""]));
+});
+document.getElementById("btnExportCrmPdf").addEventListener("click", () => {
+  exportPDF("Database Pelanggan CRM",
+    ["Nama","Kontak","Status","Sumber","Follow up terakhir"],
+    CRM_VISIBLE.map(c => [c.name, c.phone, c.status, c.source||"—", c.last_followup_at?fmtDate(c.last_followup_at.slice(0,10)):"Belum pernah"]),
+    "dhp-crm-pelanggan");
+});
+
+/* ---- Desain & Video ---- */
+document.getElementById("btnExportDesignExcel").addEventListener("click", () => {
+  exportExcel("dhp-tugas-desain","Tugas Desain",
+    ["Judul","Tipe","Status","Deadline","Ditugaskan ke"],
+    DESIGN_CACHE.map(d => [d.title, d.task_type, d.status, d.deadline?fmtDate(d.deadline):"—", nameOf(d.assigned_to)]));
+});
+document.getElementById("btnExportDesignPdf").addEventListener("click", () => {
+  exportPDF("Papan Tugas Desain & Video",
+    ["Judul","Tipe","Status","Deadline","Ditugaskan ke"],
+    DESIGN_CACHE.map(d => [d.title, d.task_type, d.status, d.deadline?fmtDate(d.deadline):"—", nameOf(d.assigned_to)]),
+    "dhp-tugas-desain");
+});
+
+/* ---- Log Hasil Kerja ---- */
+document.getElementById("btnExportWorklogExcel").addEventListener("click", () => {
+  exportExcel("dhp-log-hasil-kerja","Log Hasil Kerja",
+    ["Judul","Tipe","Platform","Tanggal","Views","Likes","Komentar","Oleh"],
+    WORKLOG_VISIBLE.map(l => [l.title, l.work_type, l.platform||"—", fmtDate(l.output_date), l.metric_views||0, l.metric_likes||0, l.metric_comments||0, nameOf(l.user_id)]));
+});
+document.getElementById("btnExportWorklogPdf").addEventListener("click", () => {
+  exportPDF("Log Hasil Kerja",
+    ["Judul","Tipe","Platform","Tanggal","Views","Likes","Komentar","Oleh"],
+    WORKLOG_VISIBLE.map(l => [l.title, l.work_type, l.platform||"—", fmtDate(l.output_date), l.metric_views||0, l.metric_likes||0, l.metric_comments||0, nameOf(l.user_id)]),
+    "dhp-log-hasil-kerja");
+});
+
+/* ---- Affiliate & Collab ---- */
+document.getElementById("btnExportAffExcel").addEventListener("click", () => {
+  exportExcel("dhp-affiliate","Afiliator",
+    ["Nama","Platform","Tier","Komisi (%)","Total GMV","Status"],
+    AFF_VISIBLE.map(a => [a.name, a.platform, a.tier, a.commission_rate, gmvOf(a.id), a.status]));
+});
+document.getElementById("btnExportAffPdf").addEventListener("click", () => {
+  exportPDF("Daftar Afiliator & KOL",
+    ["Nama","Platform","Tier","Komisi (%)","Total GMV","Status"],
+    AFF_VISIBLE.map(a => [a.name, a.platform, a.tier, a.commission_rate+"%", fmtRupiah(gmvOf(a.id)), a.status]),
+    "dhp-affiliate");
+});
+document.getElementById("btnExportCollabExcel").addEventListener("click", () => {
+  exportExcel("dhp-kolaborasi","Kolaborasi",
+    ["Afiliator","Judul Konten","Tanggal","GMV","Komisi","Status"],
+    COLLAB_VISIBLE.map(c => [affiliateName(c.affiliate_id), c.title, fmtDate(c.collab_date), c.gmv, c.commission_amount, c.status]));
+});
+document.getElementById("btnExportCollabPdf").addEventListener("click", () => {
+  exportPDF("Kolaborasi Affiliate Terbaru",
+    ["Afiliator","Judul Konten","Tanggal","GMV","Komisi","Status"],
+    COLLAB_VISIBLE.map(c => [affiliateName(c.affiliate_id), c.title, fmtDate(c.collab_date), fmtRupiah(c.gmv), fmtRupiah(c.commission_amount), c.status]),
+    "dhp-kolaborasi");
+});
+
+/* ---- Budget Marketing ---- */
+document.getElementById("btnExportBudgetExcel").addEventListener("click", () => {
+  exportExcel("dhp-budget-marketing","Budget",
+    ["Campaign","Platform","Budget","Realisasi","Sisa","% Terpakai"],
+    BUDGET_VISIBLE.map(b => [b.campaign_name, b.platform, b.budget_amount, b.spent_amount, b.budget_amount-b.spent_amount, b.budget_amount?Math.round(b.spent_amount/b.budget_amount*100)+"%":"0%"]));
+});
+document.getElementById("btnExportBudgetPdf").addEventListener("click", () => {
+  exportPDF("Anggaran & Realisasi Marketing",
+    ["Campaign","Platform","Budget","Realisasi","Sisa","% Terpakai"],
+    BUDGET_VISIBLE.map(b => [b.campaign_name, b.platform, fmtRupiah(b.budget_amount), fmtRupiah(b.spent_amount), fmtRupiah(b.budget_amount-b.spent_amount), b.budget_amount?Math.round(b.spent_amount/b.budget_amount*100)+"%":"0%"]),
+    "dhp-budget-marketing");
+});
+
+/* ============================================================
+   REALTIME SYNC — semua user lihat perubahan secara live
+   Catatan: perlu Realtime aktif di Supabase untuk tabel terkait
+   (lihat bagian bawah schema.sql — publication supabase_realtime).
+   ============================================================ */
+let REALTIME_CHANNEL = null;
+const REALTIME_DEBOUNCE = {};
+function scheduleRealtimeRefresh(pageKey){
+  clearTimeout(REALTIME_DEBOUNCE[pageKey]);
+  REALTIME_DEBOUNCE[pageKey] = setTimeout(() => {
+    flashLiveIndicator();
+    if (currentPage === pageKey) reloadCurrentPageData(pageKey);
+    if (currentPage === "dashboard") loadDashboard();
+  }, 350);
+}
+function reloadCurrentPageData(id){
+  if (id === "content") loadContent();
+  else if (id === "crm") loadCrm();
+  else if (id === "design") loadDesign();
+  else if (id === "worklog") loadWorklog();
+  else if (id === "affiliate") loadAffiliate();
+  else if (id === "budget") loadBudget();
+}
+function setLiveIndicator(status){
+  const el = document.getElementById("liveIndicator");
+  const txt = document.getElementById("liveIndicatorText");
+  if (!el) return;
+  if (status === "SUBSCRIBED") { el.classList.add("on"); txt.textContent = "Live"; }
+  else if (status === "CONNECTING" || status === undefined) { el.classList.remove("on"); txt.textContent = "Menghubungkan…"; }
+  else { el.classList.remove("on"); txt.textContent = "Terputus"; }
+}
+function flashLiveIndicator(){
+  const el = document.getElementById("liveIndicator");
+  if (!el) return;
+  el.classList.add("flash");
+  setTimeout(() => el.classList.remove("flash"), 500);
+}
+function setupRealtime(){
+  if (REALTIME_CHANNEL) return;
+  setLiveIndicator();
+  REALTIME_CHANNEL = sb.channel("dhp-live-sync")
+    .on("postgres_changes", { event:"*", schema:"public", table:"content_plan" }, () => scheduleRealtimeRefresh("content"))
+    .on("postgres_changes", { event:"*", schema:"public", table:"content_types" }, () => scheduleRealtimeRefresh("content"))
+    .on("postgres_changes", { event:"*", schema:"public", table:"crm_customers" }, () => scheduleRealtimeRefresh("crm"))
+    .on("postgres_changes", { event:"*", schema:"public", table:"crm_followup_logs" }, () => scheduleRealtimeRefresh("crm"))
+    .on("postgres_changes", { event:"*", schema:"public", table:"design_tasks" }, () => scheduleRealtimeRefresh("design"))
+    .on("postgres_changes", { event:"*", schema:"public", table:"output_logs" }, () => scheduleRealtimeRefresh("worklog"))
+    .on("postgres_changes", { event:"*", schema:"public", table:"marketing_budgets" }, () => scheduleRealtimeRefresh("budget"))
+    .on("postgres_changes", { event:"*", schema:"public", table:"affiliates" }, () => scheduleRealtimeRefresh("affiliate"))
+    .on("postgres_changes", { event:"*", schema:"public", table:"affiliate_collabs" }, () => scheduleRealtimeRefresh("affiliate"))
+    .subscribe((status) => setLiveIndicator(status));
+}
+function teardownRealtime(){
+  if (REALTIME_CHANNEL) { sb.removeChannel(REALTIME_CHANNEL); REALTIME_CHANNEL = null; }
+}
 
 /* ============================================================
    MODAL HELPERS
