@@ -535,6 +535,100 @@ tbody tr:hover{background:var(--surface2)}
         <div class="kanban-wrap" id="designKanban"></div>
       </section>
 
+      <!-- ===== LOG HASIL KERJA ===== -->
+      <section class="page" id="page-worklog">
+        <div class="grid-cards" id="worklogStats"></div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Log Hasil Kerja</h3>
+            <div class="panel-tools">
+              <select class="input" id="wlFilterUser" style="width:170px;display:none">
+                <option value="">Semua anggota</option>
+              </select>
+              <select class="input" id="wlFilterType" style="width:140px">
+                <option value="">Semua tipe</option>
+                <option value="content">Konten</option>
+                <option value="design">Desain/Video</option>
+              </select>
+              <button class="btn btn-gold" id="btnAddWorklog">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                Catat Hasil
+              </button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Judul</th><th>Tipe</th><th>Platform</th><th>Tanggal</th><th>Views</th><th>Likes</th><th>Komentar</th><th id="wlOwnerHead" style="display:none">Oleh</th><th></th></tr></thead>
+            <tbody id="worklogTableBody"><tr class="row-empty"><td colspan="9">Memuat…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== AFFILIATE & KOL (moderator) ===== -->
+      <section class="page" id="page-affiliate">
+        <div class="grid-cards" id="affStats"></div>
+        <div class="panel" style="margin-bottom:20px">
+          <div class="panel-head">
+            <h3>Daftar Afiliator</h3>
+            <div class="panel-tools">
+              <select class="input" id="affFilterPlatform" style="width:140px">
+                <option value="">Semua platform</option>
+                <option value="tiktok">TikTok</option>
+                <option value="instagram">Instagram</option>
+                <option value="shopee">Shopee</option>
+                <option value="lainnya">Lainnya</option>
+              </select>
+              <button class="btn btn-gold" id="btnAddAffiliate">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                Afiliator Baru
+              </button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Nama</th><th>Platform</th><th>Tier</th><th>Komisi</th><th>Total GMV</th><th>Status</th><th></th></tr></thead>
+            <tbody id="affTableBody"><tr class="row-empty"><td colspan="7">Memuat…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Kolaborasi Terbaru</h3>
+            <div class="panel-tools">
+              <select class="input" id="collabFilterStatus" style="width:150px">
+                <option value="">Semua status</option>
+                <option value="diajukan">Diajukan</option>
+                <option value="proses">Proses</option>
+                <option value="tayang">Tayang</option>
+                <option value="selesai">Selesai</option>
+              </select>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Afiliator</th><th>Judul Konten</th><th>Tanggal</th><th>GMV</th><th>Komisi</th><th>Status</th><th></th></tr></thead>
+            <tbody id="collabTableBody"><tr class="row-empty"><td colspan="7">Memuat…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== BUDGET MARKETING (moderator) ===== -->
+      <section class="page" id="page-budget">
+        <div class="grid-cards" id="budgetStats"></div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Anggaran &amp; Realisasi</h3>
+            <div class="panel-tools">
+              <input class="input" type="month" id="budgetFilterMonth" style="width:150px">
+              <button class="btn btn-gold" id="btnAddBudget">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                Campaign Baru
+              </button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Campaign</th><th>Platform</th><th>Budget</th><th>Realisasi</th><th>Sisa</th><th>Terpakai</th><th></th></tr></thead>
+            <tbody id="budgetTableBody"><tr class="row-empty"><td colspan="7">Memuat…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
       <!-- ===== TIM (moderator) ===== -->
       <section class="page" id="page-team">
         <div class="panel">
@@ -681,6 +775,151 @@ tbody tr:hover{background:var(--surface2)}
   </div>
 </div>
 
+<!-- ===== MODAL: Riwayat Follow Up ===== -->
+<div class="modal-overlay" id="modalFollowupHistory">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="fuhTitle">Riwayat Follow Up</h3><button class="modal-close" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body" id="fuhBody">
+      <div style="color:var(--muted); font-size:13px; text-align:center; padding:20px 0">Memuat…</div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost btn-sm" data-close>Tutup</button></div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Log Hasil Kerja ===== -->
+<div class="modal-overlay" id="modalWorklog">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="modalWorklogTitle">Catat Hasil Kerja</h3><button class="modal-close" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="wlId">
+      <div class="field"><label>Judul</label><input class="input" id="wlTitle" placeholder="cth. Reels Bedcover Motif Baru"></div>
+      <div class="field-2col">
+        <div class="field"><label>Tipe</label>
+          <select class="input" id="wlType"><option value="content">Konten</option><option value="design">Desain/Video</option></select>
+        </div>
+        <div class="field"><label>Platform</label>
+          <select class="input" id="wlPlatform"><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="shopee">Shopee</option><option value="lainnya">Lainnya</option></select>
+        </div>
+      </div>
+      <div class="field-2col">
+        <div class="field"><label>Tanggal tayang/selesai</label><input class="input" type="date" id="wlDate"></div>
+        <div class="field"><label>Link hasil</label><input class="input" id="wlLink" placeholder="https://..."></div>
+      </div>
+      <div class="field-2col" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="field"><label>Views</label><input class="input" type="number" min="0" id="wlViews" value="0"></div>
+        <div class="field"><label>Likes</label><input class="input" type="number" min="0" id="wlLikes" value="0"></div>
+        <div class="field"><label>Komentar</label><input class="input" type="number" min="0" id="wlComments" value="0"></div>
+      </div>
+      <div class="field"><label>Catatan (opsional)</label><textarea class="input" id="wlNotes"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" id="btnDeleteWorklog" style="margin-right:auto;display:none">Hapus</button>
+      <button class="btn btn-ghost btn-sm" data-close>Batal</button>
+      <button class="btn btn-gold btn-sm" id="btnSaveWorklog">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Affiliate ===== -->
+<div class="modal-overlay" id="modalAffiliate">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="modalAffiliateTitle">Afiliator Baru</h3><button class="modal-close" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="afId">
+      <div class="field"><label>Nama</label><input class="input" id="afName" placeholder="cth. @nama.afiliator"></div>
+      <div class="field-2col">
+        <div class="field"><label>Platform</label>
+          <select class="input" id="afPlatform"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="shopee">Shopee</option><option value="lainnya">Lainnya</option></select>
+        </div>
+        <div class="field"><label>No. WhatsApp</label><input class="input" id="afPhone" placeholder="628..."></div>
+      </div>
+      <div class="field-2col">
+        <div class="field"><label>Tier</label>
+          <select class="input" id="afTier"><option value="nano">Nano</option><option value="mikro">Mikro</option><option value="makro">Makro</option><option value="mega">Mega</option></select>
+        </div>
+        <div class="field"><label>Komisi (%)</label><input class="input" type="number" min="0" step="0.1" id="afCommission" value="0"></div>
+      </div>
+      <div class="field"><label>Status</label>
+        <select class="input" id="afStatus"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select>
+      </div>
+      <div class="field"><label>Catatan</label><textarea class="input" id="afNotes"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" id="btnDeleteAffiliate" style="margin-right:auto;display:none">Hapus</button>
+      <button class="btn btn-ghost btn-sm" data-close>Batal</button>
+      <button class="btn btn-gold btn-sm" id="btnSaveAffiliate">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Kolaborasi Afiliator ===== -->
+<div class="modal-overlay" id="modalCollab">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="modalCollabTitle">Kolaborasi Baru</h3><button class="modal-close" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="clId">
+      <input type="hidden" id="clAffiliateId">
+      <div class="field"><label>Afiliator</label><select class="input" id="clAffiliateSelect"></select></div>
+      <div class="field"><label>Judul konten</label><input class="input" id="clTitle" placeholder="cth. Live Selling Bedcover Katun"></div>
+      <div class="field-2col">
+        <div class="field"><label>Platform</label>
+          <select class="input" id="clPlatform"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="shopee">Shopee</option><option value="lainnya">Lainnya</option></select>
+        </div>
+        <div class="field"><label>Tanggal</label><input class="input" type="date" id="clDate"></div>
+      </div>
+      <div class="field"><label>Link konten (opsional)</label><input class="input" id="clLink" placeholder="https://..."></div>
+      <div class="field-2col">
+        <div class="field"><label>GMV (Rp)</label><input class="input" type="number" min="0" id="clGmv" value="0"></div>
+        <div class="field"><label>Komisi (Rp)</label>
+          <div style="display:flex;gap:6px">
+            <input class="input" type="number" min="0" id="clCommission" value="0">
+            <button type="button" class="btn btn-ghost btn-sm" id="btnCalcCommission" title="Hitung otomatis dari GMV × komisi %">Hitung</button>
+          </div>
+        </div>
+      </div>
+      <div class="field"><label>Status</label>
+        <select class="input" id="clStatus"><option value="diajukan">Diajukan</option><option value="proses">Proses</option><option value="tayang">Tayang</option><option value="selesai">Selesai</option></select>
+      </div>
+      <div class="field"><label>Catatan</label><textarea class="input" id="clNotes"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" id="btnDeleteCollab" style="margin-right:auto;display:none">Hapus</button>
+      <button class="btn btn-ghost btn-sm" data-close>Batal</button>
+      <button class="btn btn-gold btn-sm" id="btnSaveCollab">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Budget Marketing ===== -->
+<div class="modal-overlay" id="modalBudget">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="modalBudgetTitle">Campaign Baru</h3><button class="modal-close" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="bgId">
+      <div class="field"><label>Nama campaign</label><input class="input" id="bgName" placeholder="cth. Promo Gajian Agustus"></div>
+      <div class="field-2col">
+        <div class="field"><label>Platform</label>
+          <select class="input" id="bgPlatform">
+            <option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="shopee">Shopee</option>
+            <option value="meta_ads">Meta Ads</option><option value="google_ads">Google Ads</option><option value="lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="field"><label>Bulan</label><input class="input" type="month" id="bgMonth"></div>
+      </div>
+      <div class="field-2col">
+        <div class="field"><label>Budget (Rp)</label><input class="input" type="number" min="0" id="bgBudget" value="0"></div>
+        <div class="field"><label>Realisasi (Rp)</label><input class="input" type="number" min="0" id="bgSpent" value="0"></div>
+      </div>
+      <div class="field"><label>Catatan</label><textarea class="input" id="bgNotes"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" id="btnDeleteBudget" style="margin-right:auto;display:none">Hapus</button>
+      <button class="btn btn-ghost btn-sm" data-close>Batal</button>
+      <button class="btn btn-gold btn-sm" id="btnSaveBudget">Simpan</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== MODAL: Lupa Password ===== -->
 <div class="modal-overlay" id="modalForgot">
   <div class="modal-box">
@@ -716,17 +955,22 @@ const NAV_BY_ROLE = {
     { id: "content",   label: "Rencana Konten", icon: iconCalendar() },
     { id: "crm",       label: "CRM Pelanggan", icon: iconUsers() },
     { id: "design",    label: "Desain & Video", icon: iconLayers() },
+    { id: "worklog",   label: "Log Hasil Kerja", icon: iconWorklog() },
+    { id: "affiliate", label: "Affiliate & KOL", icon: iconAffiliate() },
+    { id: "budget",    label: "Budget Marketing", icon: iconBudget() },
     { id: "team",      label: "Tim", icon: iconTeam() },
     { id: "profile",   label: "Profil", icon: iconUser() },
   ],
   content_creator: [
     { id: "dashboard", label: "Dashboard", icon: iconGrid() },
     { id: "content",   label: "Rencana Konten", icon: iconCalendar() },
+    { id: "worklog",   label: "Log Hasil Kerja", icon: iconWorklog() },
     { id: "profile",   label: "Profil", icon: iconUser() },
   ],
   desain_grafis: [
     { id: "dashboard", label: "Dashboard", icon: iconGrid() },
     { id: "design",    label: "Desain & Video", icon: iconLayers() },
+    { id: "worklog",   label: "Log Hasil Kerja", icon: iconWorklog() },
     { id: "profile",   label: "Profil", icon: iconUser() },
   ],
 };
@@ -736,6 +980,9 @@ const PAGE_META = {
   content:   { title: "Rencana Konten", sub: "Kalender & tugas konten tim" },
   crm:       { title: "CRM Pelanggan", sub: "Database pelanggan & follow up" },
   design:    { title: "Desain & Video", sub: "Papan tugas produksi visual" },
+  worklog:   { title: "Log Hasil Kerja", sub: "Catatan konten/desain yang sudah tayang & metriknya" },
+  affiliate: { title: "Affiliate & KOL", sub: "Daftar afiliator, kolaborasi & GMV" },
+  budget:    { title: "Budget Marketing", sub: "Anggaran vs realisasi per platform & campaign" },
   team:      { title: "Tim", sub: "Anggota tim DHP Studio" },
   profile:   { title: "Profil Saya", sub: "Kelola nama & password" },
 };
@@ -754,6 +1001,11 @@ function iconEdit(){return `<svg viewBox="0 0 24 24" fill="none" stroke="current
 function iconWa(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L3 20l1.02-5.4A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 9.5c.3 2.8 2.2 4.7 5 5"/></svg>`}
 function iconCheck(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>`}
 function iconInfo(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>`}
+function iconWorklog(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3"/><rect x="9" y="1.5" width="6" height="4" rx="1"/><path d="M8 12h8M8 16h5"/></svg>`}
+function iconAffiliate(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M16 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/><path d="m14.5 6 2-2 2 2M18.5 4v4"/></svg>`}
+function iconBudget(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.3c0-1.3 1.1-2.3 2.5-2.3s2.5.8 2.5 2c0 2.3-5 1.6-5 4 0 1.2 1.1 2 2.5 2s2.5-1 2.5-2.3"/></svg>`}
+function iconHistory(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5M12 7v5l4 2"/></svg>`}
+function iconLink(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 15 15 9"/><path d="M11 6l1.5-1.5a3.5 3.5 0 0 1 5 5L16 11"/><path d="M13 18l-1.5 1.5a3.5 3.5 0 0 1-5-5L8 13"/></svg>`}
 
 /* ============================================================
    ANIMATED LOGIN VECTOR (SVG orbit, minimal & elegan)
@@ -926,6 +1178,9 @@ function goPage(id){
   if (id === "content") loadContent();
   if (id === "crm") loadCrm();
   if (id === "design") loadDesign();
+  if (id === "worklog") loadWorklog();
+  if (id === "affiliate") loadAffiliate();
+  if (id === "budget") loadBudget();
   if (id === "team") loadTeamPage();
   if (id === "profile") loadProfile();
 }
@@ -989,7 +1244,7 @@ async function loadDashboard(){
     const cpList = cp || [], crmList = crm || [], dtList = dt || [];
     cards = [
       { label:"Konten belum selesai", value: cpList.filter(c=>c.status!=="selesai").length },
-      { label:"Pelanggan hot/warm", value: crmList.filter(c=>c.status==="hot"||c.status==="warm").length },
+      { label:"Pelanggan perlu follow up", value: crmList.filter(needsFollowup).length },
       { label:"Tugas desain berjalan", value: dtList.filter(d=>d.status==="proses"||d.status==="revisi").length },
       { label:"Total pelanggan", value: crmList.length },
     ];
@@ -1165,12 +1420,26 @@ function renderCrmStats(){
   ];
   el.innerHTML = cards.map(x => `<div class="stat-card"><div class="label">${x.label}</div><div class="value gold">${x.value}</div></div>`).join("");
 }
+function needsFollowup(c){
+  if (c.status === "closing" || c.status === "cold") return false;
+  if (!c.last_followup_at) return true;
+  const days = (Date.now() - new Date(c.last_followup_at).getTime()) / 86400000;
+  return days >= 3;
+}
 function renderCrmTable(){
   const search = document.getElementById("crmSearch").value.toLowerCase();
   const filter = document.getElementById("crmFilterStatus").value;
   let list = CRM_CACHE;
   if (filter) list = list.filter(c => c.status === filter);
   if (search) list = list.filter(c => c.name.toLowerCase().includes(search) || c.phone.includes(search));
+  // urutkan: yang butuh follow up dulu, lalu berdasarkan follow up paling lama
+  list = [...list].sort((a,b) => {
+    const na = needsFollowup(a), nb = needsFollowup(b);
+    if (na !== nb) return na ? -1 : 1;
+    const ta = a.last_followup_at ? new Date(a.last_followup_at).getTime() : 0;
+    const tb = b.last_followup_at ? new Date(b.last_followup_at).getTime() : 0;
+    return ta - tb;
+  });
   const tbody = document.getElementById("crmTableBody");
   if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="5">Belum ada pelanggan</td></tr>`; return; }
   tbody.innerHTML = list.map(c => `
@@ -1178,10 +1447,14 @@ function renderCrmTable(){
       <td>${escapeHtml(c.name)}</td>
       <td>${escapeHtml(c.phone)}</td>
       <td>${statusBadge(c.status)}</td>
-      <td>${c.last_followup_at ? timeAgo(c.last_followup_at) : "Belum pernah"}</td>
+      <td>
+        ${c.last_followup_at ? timeAgo(c.last_followup_at) : "Belum pernah"}
+        ${needsFollowup(c) ? `<span class="badge badge-red" style="margin-left:6px"><span class="dot"></span>Perlu follow up</span>` : ""}
+      </td>
       <td>
         <div class="icon-btn-row">
           <button class="btn-icon" data-followup="${c.id}" title="Follow up">${iconWa()}</button>
+          <button class="btn-icon" data-history="${c.id}" title="Riwayat follow up">${iconHistory()}</button>
           <button class="btn-icon" data-edit-customer="${c.id}" title="Edit">${iconEdit()}</button>
         </div>
       </td>
@@ -1189,6 +1462,24 @@ function renderCrmTable(){
   `).join("");
   tbody.querySelectorAll("[data-edit-customer]").forEach(b => b.addEventListener("click", () => openCustomerModal(b.dataset.editCustomer)));
   tbody.querySelectorAll("[data-followup]").forEach(b => b.addEventListener("click", () => openFollowupModal(b.dataset.followup)));
+  tbody.querySelectorAll("[data-history]").forEach(b => b.addEventListener("click", () => openFollowupHistory(b.dataset.history)));
+}
+
+async function openFollowupHistory(customerId){
+  const customer = CRM_CACHE.find(c => c.id === customerId);
+  document.getElementById("fuhTitle").textContent = "Riwayat Follow Up — " + (customer?.name || "");
+  document.getElementById("fuhBody").innerHTML = `<div style="color:var(--muted); font-size:13px; text-align:center; padding:20px 0">Memuat…</div>`;
+  openModal("modalFollowupHistory");
+  const { data, error } = await sb.from("crm_followup_logs").select("*").eq("customer_id", customerId).order("created_at", { ascending: false });
+  const body = document.getElementById("fuhBody");
+  if (error) { body.innerHTML = `<div style="color:var(--red); font-size:13px">${escapeHtml(error.message)}</div>`; return; }
+  if (!data || !data.length) { body.innerHTML = `<div style="color:var(--muted); font-size:13px; text-align:center; padding:20px 0">Belum ada catatan follow up</div>`; return; }
+  body.innerHTML = data.map(l => `
+    <div style="padding:12px 0; border-bottom:1px solid var(--border)">
+      <div style="font-size:13px; color:var(--text)">${escapeHtml(l.note)}</div>
+      <div style="font-size:11.5px; color:var(--muted); margin-top:6px">${escapeHtml(nameOf(l.followed_up_by))} · ${timeAgo(l.created_at)}</div>
+    </div>
+  `).join("");
 }
 
 document.getElementById("btnAddCustomer").addEventListener("click", () => openCustomerModal());
@@ -1338,6 +1629,398 @@ document.getElementById("btnDeleteDesign").addEventListener("click", async () =>
   const { error } = await sb.from("design_tasks").delete().eq("id", id);
   if (error) return toast(error.message,"error");
   toast("Tugas dihapus","success"); closeModal("modalDesign"); loadDesign();
+});
+
+/* ============================================================
+   LOG HASIL KERJA (Content Creator & Desain Grafis)
+   ============================================================ */
+let WORKLOG_CACHE = [];
+function myWorkType(){ return CURRENT_USER.role === "desain_grafis" ? "design" : "content"; }
+async function loadWorklog(){
+  const isMod = CURRENT_USER.role === "moderator";
+  document.getElementById("btnAddWorklog").style.display = isMod ? "none" : "inline-flex";
+  document.getElementById("wlOwnerHead").style.display = isMod ? "" : "none";
+  document.getElementById("wlFilterUser").style.display = isMod ? "inline-flex" : "none";
+  document.getElementById("wlFilterType").onchange = renderWorklogTable;
+  document.getElementById("wlFilterUser").onchange = renderWorklogTable;
+
+  if (isMod && !document.getElementById("wlFilterUser").dataset.filled) {
+    document.getElementById("wlFilterUser").innerHTML = `<option value="">Semua anggota</option>` +
+      TEAM.filter(u => u.role === "content_creator" || u.role === "desain_grafis")
+        .map(u => `<option value="${u.id}">${escapeHtml(u.display_name)}</option>`).join("");
+    document.getElementById("wlFilterUser").dataset.filled = "1";
+  }
+
+  let q = sb.from("output_logs").select("*").order("output_date", { ascending: false });
+  if (!isMod) q = q.eq("user_id", CURRENT_USER.id);
+  const { data, error } = await q;
+  if (error) { toast("Gagal memuat log: " + error.message, "error"); return; }
+  WORKLOG_CACHE = data || [];
+  renderWorklogStats();
+  renderWorklogTable();
+}
+function renderWorklogStats(){
+  const el = document.getElementById("worklogStats");
+  const list = WORKLOG_CACHE;
+  const cards = [
+    { label:"Total log", value: list.length },
+    { label:"Total views", value: list.reduce((s,x)=>s+(x.metric_views||0),0) },
+    { label:"Total likes", value: list.reduce((s,x)=>s+(x.metric_likes||0),0) },
+    { label:"Total komentar", value: list.reduce((s,x)=>s+(x.metric_comments||0),0) },
+  ];
+  el.innerHTML = cards.map(c => `<div class="stat-card"><div class="label">${c.label}</div><div class="value gold">${c.value}</div></div>`).join("");
+}
+function renderWorklogTable(){
+  const isMod = CURRENT_USER.role === "moderator";
+  const typeFilter = document.getElementById("wlFilterType").value;
+  const userFilter = document.getElementById("wlFilterUser").value;
+  let list = WORKLOG_CACHE;
+  if (typeFilter) list = list.filter(l => l.work_type === typeFilter);
+  if (isMod && userFilter) list = list.filter(l => l.user_id === userFilter);
+  const tbody = document.getElementById("worklogTableBody");
+  if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="9">Belum ada log</td></tr>`; return; }
+  tbody.innerHTML = list.map(l => `
+    <tr>
+      <td>${escapeHtml(l.title)}</td>
+      <td><span class="badge ${l.work_type==='design'?'badge-blue':'badge-gold'}">${l.work_type==='design'?'Desain/Video':'Konten'}</span></td>
+      <td style="text-transform:capitalize">${escapeHtml(l.platform||'—')}</td>
+      <td>${fmtDate(l.output_date)}</td>
+      <td>${l.metric_views||0}</td>
+      <td>${l.metric_likes||0}</td>
+      <td>${l.metric_comments||0}</td>
+      <td style="display:${isMod?'':'none'}">${escapeHtml(nameOf(l.user_id))}</td>
+      <td>
+        <div class="icon-btn-row">
+          ${l.link_url ? `<a class="btn-icon" href="${escapeHtml(l.link_url)}" target="_blank" title="Buka link">${iconLink()}</a>` : ""}
+          ${(!isMod && l.user_id===CURRENT_USER.id) ? `<button class="btn-icon" data-edit-worklog="${l.id}" title="Edit">${iconEdit()}</button>` : ""}
+        </div>
+      </td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-edit-worklog]").forEach(b => b.addEventListener("click", () => openWorklogModal(b.dataset.editWorklog)));
+}
+document.getElementById("btnAddWorklog").addEventListener("click", () => openWorklogModal());
+function openWorklogModal(id){
+  const l = id ? WORKLOG_CACHE.find(x => x.id === id) : null;
+  document.getElementById("modalWorklogTitle").textContent = l ? "Edit Log" : "Catat Hasil Kerja";
+  document.getElementById("wlId").value = l?.id || "";
+  document.getElementById("wlTitle").value = l?.title || "";
+  document.getElementById("wlType").value = l?.work_type || myWorkType();
+  document.getElementById("wlType").disabled = true; // tipe mengikuti role
+  document.getElementById("wlPlatform").value = l?.platform || "instagram";
+  document.getElementById("wlDate").value = l?.output_date || new Date().toISOString().slice(0,10);
+  document.getElementById("wlLink").value = l?.link_url || "";
+  document.getElementById("wlViews").value = l?.metric_views ?? 0;
+  document.getElementById("wlLikes").value = l?.metric_likes ?? 0;
+  document.getElementById("wlComments").value = l?.metric_comments ?? 0;
+  document.getElementById("wlNotes").value = l?.notes || "";
+  document.getElementById("btnDeleteWorklog").style.display = l ? "inline-flex" : "none";
+  openModal("modalWorklog");
+}
+document.getElementById("btnSaveWorklog").addEventListener("click", async () => {
+  const id = document.getElementById("wlId").value;
+  const payload = {
+    work_type: myWorkType(),
+    title: document.getElementById("wlTitle").value.trim(),
+    platform: document.getElementById("wlPlatform").value,
+    output_date: document.getElementById("wlDate").value || new Date().toISOString().slice(0,10),
+    link_url: document.getElementById("wlLink").value.trim(),
+    metric_views: Number(document.getElementById("wlViews").value) || 0,
+    metric_likes: Number(document.getElementById("wlLikes").value) || 0,
+    metric_comments: Number(document.getElementById("wlComments").value) || 0,
+    notes: document.getElementById("wlNotes").value.trim(),
+  };
+  if (!payload.title) return toast("Judul wajib diisi","error");
+  let error;
+  if (id) { ({ error } = await sb.from("output_logs").update(payload).eq("id", id)); }
+  else { payload.user_id = CURRENT_USER.id; ({ error } = await sb.from("output_logs").insert(payload)); }
+  if (error) return toast(error.message,"error");
+  toast(id ? "Log diperbarui" : "Log dicatat","success");
+  closeModal("modalWorklog"); loadWorklog();
+});
+document.getElementById("btnDeleteWorklog").addEventListener("click", async () => {
+  const id = document.getElementById("wlId").value;
+  if (!id || !confirm("Hapus log ini?")) return;
+  const { error } = await sb.from("output_logs").delete().eq("id", id);
+  if (error) return toast(error.message,"error");
+  toast("Log dihapus","success"); closeModal("modalWorklog"); loadWorklog();
+});
+
+/* ============================================================
+   AFFILIATE & KOL (moderator)
+   ============================================================ */
+let AFFILIATE_CACHE = [];
+let COLLAB_CACHE = [];
+function fmtRupiah(n){ return "Rp" + Math.round(n||0).toLocaleString("id-ID"); }
+async function loadAffiliate(){
+  document.getElementById("affFilterPlatform").onchange = renderAffiliateTable;
+  document.getElementById("collabFilterStatus").onchange = renderCollabTable;
+  const [{ data: af, error: e1 }, { data: cl, error: e2 }] = await Promise.all([
+    sb.from("affiliates").select("*").order("created_at",{ascending:false}),
+    sb.from("affiliate_collabs").select("*").order("collab_date",{ascending:false}),
+  ]);
+  if (e1 || e2) { toast("Gagal memuat data affiliate: " + (e1||e2).message, "error"); return; }
+  AFFILIATE_CACHE = af || [];
+  COLLAB_CACHE = cl || [];
+  renderAffiliateStats();
+  renderAffiliateTable();
+  renderCollabTable();
+}
+function affiliateName(id){ return AFFILIATE_CACHE.find(a => a.id === id)?.name || "—"; }
+function gmvOf(affiliateId){ return COLLAB_CACHE.filter(c => c.affiliate_id === affiliateId).reduce((s,c)=>s+(Number(c.gmv)||0),0); }
+function renderAffiliateStats(){
+  const el = document.getElementById("affStats");
+  const now = new Date();
+  const thisMonthCollabs = COLLAB_CACHE.filter(c => {
+    const d = new Date(c.collab_date);
+    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  });
+  const cards = [
+    { label:"Afiliator aktif", value: AFFILIATE_CACHE.filter(a=>a.status==="aktif").length },
+    { label:"Kolaborasi berjalan", value: COLLAB_CACHE.filter(c=>c.status==="proses"||c.status==="tayang").length },
+    { label:"GMV bulan ini", value: fmtRupiah(thisMonthCollabs.reduce((s,c)=>s+(Number(c.gmv)||0),0)) },
+    { label:"Komisi bulan ini", value: fmtRupiah(thisMonthCollabs.reduce((s,c)=>s+(Number(c.commission_amount)||0),0)) },
+  ];
+  el.innerHTML = cards.map(c => `<div class="stat-card"><div class="label">${c.label}</div><div class="value gold">${c.value}</div></div>`).join("");
+}
+function renderAffiliateTable(){
+  const filter = document.getElementById("affFilterPlatform").value;
+  let list = AFFILIATE_CACHE;
+  if (filter) list = list.filter(a => a.platform === filter);
+  const tbody = document.getElementById("affTableBody");
+  if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="7">Belum ada afiliator</td></tr>`; return; }
+  tbody.innerHTML = list.map(a => `
+    <tr>
+      <td>${escapeHtml(a.name)}</td>
+      <td style="text-transform:capitalize">${escapeHtml(a.platform)}</td>
+      <td><span class="badge badge-gold">${a.tier}</span></td>
+      <td>${a.commission_rate}%</td>
+      <td>${fmtRupiah(gmvOf(a.id))}</td>
+      <td><span class="badge ${a.status==='aktif'?'badge-green':'badge-muted'}"><span class="dot"></span>${a.status==='aktif'?'Aktif':'Nonaktif'}</span></td>
+      <td>
+        <div class="icon-btn-row">
+          <button class="btn-icon" data-add-collab="${a.id}" title="Tambah kolaborasi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+          <button class="btn-icon" data-edit-affiliate="${a.id}" title="Edit">${iconEdit()}</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-edit-affiliate]").forEach(b => b.addEventListener("click", () => openAffiliateModal(b.dataset.editAffiliate)));
+  tbody.querySelectorAll("[data-add-collab]").forEach(b => b.addEventListener("click", () => openCollabModal(null, b.dataset.addCollab)));
+}
+document.getElementById("btnAddAffiliate").addEventListener("click", () => openAffiliateModal());
+function openAffiliateModal(id){
+  const a = id ? AFFILIATE_CACHE.find(x => x.id === id) : null;
+  document.getElementById("modalAffiliateTitle").textContent = a ? "Edit Afiliator" : "Afiliator Baru";
+  document.getElementById("afId").value = a?.id || "";
+  document.getElementById("afName").value = a?.name || "";
+  document.getElementById("afPlatform").value = a?.platform || "tiktok";
+  document.getElementById("afPhone").value = a?.phone || "";
+  document.getElementById("afTier").value = a?.tier || "nano";
+  document.getElementById("afCommission").value = a?.commission_rate ?? 0;
+  document.getElementById("afStatus").value = a?.status || "aktif";
+  document.getElementById("afNotes").value = a?.notes || "";
+  document.getElementById("btnDeleteAffiliate").style.display = a ? "inline-flex" : "none";
+  openModal("modalAffiliate");
+}
+document.getElementById("btnSaveAffiliate").addEventListener("click", async () => {
+  const id = document.getElementById("afId").value;
+  const payload = {
+    name: document.getElementById("afName").value.trim(),
+    platform: document.getElementById("afPlatform").value,
+    phone: document.getElementById("afPhone").value.trim(),
+    tier: document.getElementById("afTier").value,
+    commission_rate: Number(document.getElementById("afCommission").value) || 0,
+    status: document.getElementById("afStatus").value,
+    notes: document.getElementById("afNotes").value.trim(),
+  };
+  if (!payload.name) return toast("Nama afiliator wajib diisi","error");
+  let error;
+  if (id) { ({ error } = await sb.from("affiliates").update(payload).eq("id", id)); }
+  else { payload.created_by = CURRENT_USER.id; ({ error } = await sb.from("affiliates").insert(payload)); }
+  if (error) return toast(error.message,"error");
+  toast(id ? "Afiliator diperbarui" : "Afiliator ditambahkan","success");
+  closeModal("modalAffiliate"); loadAffiliate();
+});
+document.getElementById("btnDeleteAffiliate").addEventListener("click", async () => {
+  const id = document.getElementById("afId").value;
+  if (!id || !confirm("Hapus afiliator ini? Semua data kolaborasinya juga akan terhapus.")) return;
+  const { error } = await sb.from("affiliates").delete().eq("id", id);
+  if (error) return toast(error.message,"error");
+  toast("Afiliator dihapus","success"); closeModal("modalAffiliate"); loadAffiliate();
+});
+
+function renderCollabTable(){
+  const filter = document.getElementById("collabFilterStatus").value;
+  let list = filter ? COLLAB_CACHE.filter(c => c.status === filter) : COLLAB_CACHE;
+  const tbody = document.getElementById("collabTableBody");
+  if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="7">Belum ada kolaborasi</td></tr>`; return; }
+  tbody.innerHTML = list.slice(0,50).map(c => `
+    <tr>
+      <td>${escapeHtml(affiliateName(c.affiliate_id))}</td>
+      <td>${escapeHtml(c.title)}</td>
+      <td>${fmtDate(c.collab_date)}</td>
+      <td>${fmtRupiah(c.gmv)}</td>
+      <td>${fmtRupiah(c.commission_amount)}</td>
+      <td>${collabStatusBadge(c.status)}</td>
+      <td>
+        <div class="icon-btn-row">
+          <button class="btn-icon" data-edit-collab="${c.id}" title="Edit">${iconEdit()}</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-edit-collab]").forEach(b => b.addEventListener("click", () => openCollabModal(b.dataset.editCollab)));
+}
+function collabStatusBadge(status){
+  const map = { diajukan:["badge-muted","Diajukan"], proses:["badge-blue","Proses"], tayang:["badge-amber","Tayang"], selesai:["badge-green","Selesai"] };
+  const [cls,label] = map[status] || ["badge-muted", status];
+  return `<span class="badge ${cls}"><span class="dot"></span>${label}</span>`;
+}
+function openCollabModal(id, presetAffiliateId){
+  const c = id ? COLLAB_CACHE.find(x => x.id === id) : null;
+  document.getElementById("modalCollabTitle").textContent = c ? "Edit Kolaborasi" : "Kolaborasi Baru";
+  document.getElementById("clId").value = c?.id || "";
+  document.getElementById("clAffiliateSelect").innerHTML = AFFILIATE_CACHE.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join("");
+  document.getElementById("clAffiliateSelect").value = c?.affiliate_id || presetAffiliateId || "";
+  document.getElementById("clTitle").value = c?.title || "";
+  document.getElementById("clPlatform").value = c?.platform || "tiktok";
+  document.getElementById("clDate").value = c?.collab_date || new Date().toISOString().slice(0,10);
+  document.getElementById("clLink").value = c?.content_link || "";
+  document.getElementById("clGmv").value = c?.gmv ?? 0;
+  document.getElementById("clCommission").value = c?.commission_amount ?? 0;
+  document.getElementById("clStatus").value = c?.status || "diajukan";
+  document.getElementById("clNotes").value = c?.notes || "";
+  document.getElementById("btnDeleteCollab").style.display = c ? "inline-flex" : "none";
+  openModal("modalCollab");
+}
+document.getElementById("btnCalcCommission").addEventListener("click", () => {
+  const affId = document.getElementById("clAffiliateSelect").value;
+  const affiliate = AFFILIATE_CACHE.find(a => a.id === affId);
+  const gmv = Number(document.getElementById("clGmv").value) || 0;
+  const rate = Number(affiliate?.commission_rate) || 0;
+  document.getElementById("clCommission").value = Math.round(gmv * rate / 100);
+});
+document.getElementById("btnSaveCollab").addEventListener("click", async () => {
+  const id = document.getElementById("clId").value;
+  const payload = {
+    affiliate_id: document.getElementById("clAffiliateSelect").value,
+    title: document.getElementById("clTitle").value.trim(),
+    platform: document.getElementById("clPlatform").value,
+    collab_date: document.getElementById("clDate").value || new Date().toISOString().slice(0,10),
+    content_link: document.getElementById("clLink").value.trim(),
+    gmv: Number(document.getElementById("clGmv").value) || 0,
+    commission_amount: Number(document.getElementById("clCommission").value) || 0,
+    status: document.getElementById("clStatus").value,
+    notes: document.getElementById("clNotes").value.trim(),
+  };
+  if (!payload.affiliate_id) return toast("Pilih afiliator dulu","error");
+  if (!payload.title) return toast("Judul konten wajib diisi","error");
+  let error;
+  if (id) { ({ error } = await sb.from("affiliate_collabs").update(payload).eq("id", id)); }
+  else { payload.created_by = CURRENT_USER.id; ({ error } = await sb.from("affiliate_collabs").insert(payload)); }
+  if (error) return toast(error.message,"error");
+  toast(id ? "Kolaborasi diperbarui" : "Kolaborasi ditambahkan","success");
+  closeModal("modalCollab"); loadAffiliate();
+});
+document.getElementById("btnDeleteCollab").addEventListener("click", async () => {
+  const id = document.getElementById("clId").value;
+  if (!id || !confirm("Hapus kolaborasi ini?")) return;
+  const { error } = await sb.from("affiliate_collabs").delete().eq("id", id);
+  if (error) return toast(error.message,"error");
+  toast("Kolaborasi dihapus","success"); closeModal("modalCollab"); loadAffiliate();
+});
+
+/* ============================================================
+   BUDGET MARKETING (moderator)
+   ============================================================ */
+let BUDGET_CACHE = [];
+function currentMonthStr(){ return new Date().toISOString().slice(0,7); }
+async function loadBudget(){
+  const monthInput = document.getElementById("budgetFilterMonth");
+  if (!monthInput.value) monthInput.value = currentMonthStr();
+  monthInput.onchange = renderBudgetTable;
+  const { data, error } = await sb.from("marketing_budgets").select("*").order("period_month",{ascending:false});
+  if (error) { toast("Gagal memuat budget: " + error.message, "error"); return; }
+  BUDGET_CACHE = data || [];
+  renderBudgetTable();
+}
+function monthOf(dateStr){ return (dateStr||"").slice(0,7); }
+function renderBudgetTable(){
+  const month = document.getElementById("budgetFilterMonth").value;
+  const list = month ? BUDGET_CACHE.filter(b => monthOf(b.period_month) === month) : BUDGET_CACHE;
+
+  const totalBudget = list.reduce((s,b)=>s+Number(b.budget_amount||0),0);
+  const totalSpent = list.reduce((s,b)=>s+Number(b.spent_amount||0),0);
+  const stats = document.getElementById("budgetStats");
+  stats.innerHTML = [
+    { label:"Total budget", value: fmtRupiah(totalBudget) },
+    { label:"Total realisasi", value: fmtRupiah(totalSpent) },
+    { label:"Sisa budget", value: fmtRupiah(totalBudget-totalSpent) },
+    { label:"% terpakai", value: totalBudget ? Math.round(totalSpent/totalBudget*100)+"%" : "0%" },
+  ].map(c => `<div class="stat-card"><div class="label">${c.label}</div><div class="value gold">${c.value}</div></div>`).join("");
+
+  const tbody = document.getElementById("budgetTableBody");
+  if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="7">Belum ada campaign bulan ini</td></tr>`; return; }
+  tbody.innerHTML = list.map(b => {
+    const pct = Number(b.budget_amount) ? Math.round(Number(b.spent_amount)/Number(b.budget_amount)*100) : 0;
+    const pctCls = pct >= 100 ? "badge-red" : (pct >= 80 ? "badge-amber" : "badge-green");
+    return `
+    <tr>
+      <td>${escapeHtml(b.campaign_name)}</td>
+      <td style="text-transform:capitalize">${escapeHtml(b.platform.replace('_',' '))}</td>
+      <td>${fmtRupiah(b.budget_amount)}</td>
+      <td>${fmtRupiah(b.spent_amount)}</td>
+      <td>${fmtRupiah(b.budget_amount-b.spent_amount)}</td>
+      <td><span class="badge ${pctCls}"><span class="dot"></span>${pct}%</span></td>
+      <td>
+        <div class="icon-btn-row">
+          <button class="btn-icon" data-edit-budget="${b.id}" title="Edit">${iconEdit()}</button>
+        </div>
+      </td>
+    </tr>
+  `; }).join("");
+  tbody.querySelectorAll("[data-edit-budget]").forEach(b => b.addEventListener("click", () => openBudgetModal(b.dataset.editBudget)));
+}
+document.getElementById("btnAddBudget").addEventListener("click", () => openBudgetModal());
+function openBudgetModal(id){
+  const b = id ? BUDGET_CACHE.find(x => x.id === id) : null;
+  document.getElementById("modalBudgetTitle").textContent = b ? "Edit Campaign" : "Campaign Baru";
+  document.getElementById("bgId").value = b?.id || "";
+  document.getElementById("bgName").value = b?.campaign_name || "";
+  document.getElementById("bgPlatform").value = b?.platform || "instagram";
+  document.getElementById("bgMonth").value = monthOf(b?.period_month) || document.getElementById("budgetFilterMonth").value || currentMonthStr();
+  document.getElementById("bgBudget").value = b?.budget_amount ?? 0;
+  document.getElementById("bgSpent").value = b?.spent_amount ?? 0;
+  document.getElementById("bgNotes").value = b?.notes || "";
+  document.getElementById("btnDeleteBudget").style.display = b ? "inline-flex" : "none";
+  openModal("modalBudget");
+}
+document.getElementById("btnSaveBudget").addEventListener("click", async () => {
+  const id = document.getElementById("bgId").value;
+  const month = document.getElementById("bgMonth").value;
+  const payload = {
+    campaign_name: document.getElementById("bgName").value.trim(),
+    platform: document.getElementById("bgPlatform").value,
+    period_month: month ? month + "-01" : null,
+    budget_amount: Number(document.getElementById("bgBudget").value) || 0,
+    spent_amount: Number(document.getElementById("bgSpent").value) || 0,
+    notes: document.getElementById("bgNotes").value.trim(),
+  };
+  if (!payload.campaign_name || !payload.period_month) return toast("Nama campaign dan bulan wajib diisi","error");
+  let error;
+  if (id) { ({ error } = await sb.from("marketing_budgets").update(payload).eq("id", id)); }
+  else { payload.created_by = CURRENT_USER.id; ({ error } = await sb.from("marketing_budgets").insert(payload)); }
+  if (error) return toast(error.message,"error");
+  toast(id ? "Campaign diperbarui" : "Campaign ditambahkan","success");
+  closeModal("modalBudget"); loadBudget();
+});
+document.getElementById("btnDeleteBudget").addEventListener("click", async () => {
+  const id = document.getElementById("bgId").value;
+  if (!id || !confirm("Hapus campaign ini?")) return;
+  const { error } = await sb.from("marketing_budgets").delete().eq("id", id);
+  if (error) return toast(error.message,"error");
+  toast("Campaign dihapus","success"); closeModal("modalBudget"); loadBudget();
 });
 
 /* ============================================================
