@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>DHP Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ============================================================
+   DHP STUDIO — token & base
+   ============================================================ */
+:root{
+  --bg:#0b0906; --bg2:#121008; --bg3:#171310;
+  --surface:#181410; --surface2:#1e1811; --surface3:#241d15;
+  --border:rgba(201,169,110,.14); --border-hi:rgba(201,169,110,.34);
+  --gold:#c9a570; --gold-hi:#e9d3a4; --gold-dk:#7a5a2e;
+  --text:#efe9dd; --text2:rgba(239,233,221,.62); --muted:rgba(239,233,221,.36);
+  --red:#e2716b; --green:#84c39a; --amber:#e0b46c; --blue:#8db2d6;
+  --r:16px; --r2:10px; --r3:6px;
+  --shadow:0 24px 70px rgba(0,0,0,.55);
+  --trans:.25s cubic-bezier(.4,0,.2,1);
+  --sb-w:232px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Inter',sans-serif; font-size:14.5px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+.serif{font-family:'Fraunces',serif}
+::selection{background:var(--gold-dk);color:#fff}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:8px}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+[hidden]{display:none !important}
+
+/* ============================================================
+   LOGIN SCREEN
+   ============================================================ */
+#loginScreen{
+  position:fixed; inset:0; display:flex; background:var(--bg);
+}
+.login-visual{
+  position:relative; flex:1.15; display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(120% 100% at 20% 20%, #171310 0%, #0b0906 62%);
+  overflow:hidden; border-right:1px solid var(--border);
+}
+.login-visual::before{
+  content:''; position:absolute; inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size:64px 64px; opacity:.35; mask-image:radial-gradient(circle at 50% 42%, #000 0%, transparent 70%);
+}
+.orbit-wrap{position:relative; width:min(62vw,460px); aspect-ratio:1; }
+.orbit-wrap svg{width:100%;height:100%;display:block}
+.login-copy{
+  position:absolute; left:56px; bottom:56px; right:56px; z-index:2;
+}
+.login-copy .brand{
+  display:flex; align-items:center; gap:12px; margin-bottom:26px;
+}
+.login-copy .brand .mark{
+  width:34px;height:34px;border:1px solid var(--border-hi);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+}
+.login-copy .brand .mark svg{width:17px;height:17px}
+.login-copy .brand span{font-family:'Fraunces',serif; font-size:18px; letter-spacing:.02em; color:var(--gold-hi)}
+.login-copy h1{
+  font-family:'Fraunces',serif; font-weight:500; font-size:clamp(26px,3vw,34px);
+  color:var(--text); max-width:420px; line-height:1.28;
+}
+.login-copy p{color:var(--text2); margin-top:14px; max-width:400px; font-size:14px}
+
+.login-formside{
+  width:min(30vw,392px); min-width:340px; display:flex; align-items:center; justify-content:center;
+  padding:40px;
+}
+.login-form-inner{width:100%; max-width:300px}
+.login-form-inner .eyebrow{
+  color:var(--muted); font-size:12.5px; margin-bottom:8px;
+}
+.login-form-inner h2{
+  font-family:'Fraunces',serif; font-weight:500; font-size:25px; margin-bottom:34px;
+}
+.field{margin-bottom:22px; position:relative}
+.field label{display:block; font-size:12.5px; color:var(--text2); margin-bottom:8px}
+.field-input{
+  position:relative; display:flex; align-items:center;
+  border-bottom:1px solid var(--border-hi);
+  transition:border-color var(--trans);
+}
+.field-input svg{width:16px;height:16px; color:var(--muted); flex-shrink:0; margin-right:10px; transition:color var(--trans)}
+.field-input input{
+  flex:1; background:transparent; border:none; outline:none; color:var(--text);
+  padding:9px 0; font-size:14.5px;
+}
+.field-input input::placeholder{color:var(--muted)}
+.field-input .toggle-eye{background:none;border:none;padding:2px;color:var(--muted);display:flex}
+.field-input .toggle-eye:hover{color:var(--gold-hi)}
+.field-input::after{
+  content:''; position:absolute; left:0; bottom:-1px; height:1px; width:0;
+  background:var(--gold); transition:width var(--trans);
+}
+.field-input.focused::after{width:100%}
+.field-input.focused svg.icon-lead{color:var(--gold-hi)}
+
+.row-between{display:flex; align-items:center; justify-content:space-between; margin-bottom:28px}
+.check-remember{display:flex; align-items:center; gap:9px; font-size:13px; color:var(--text2); cursor:pointer; user-select:none}
+.check-remember input{display:none}
+.check-remember .box{
+  width:16px;height:16px;border:1px solid var(--border-hi); border-radius:4px; display:flex; align-items:center; justify-content:center;
+  transition:all var(--trans);
+}
+.check-remember input:checked + .box{background:var(--gold); border-color:var(--gold)}
+.check-remember .box svg{width:10px;height:10px; opacity:0; transition:opacity var(--trans); color:#1a1408}
+.check-remember input:checked + .box svg{opacity:1}
+.link-forgot{font-size:13px; color:var(--gold-hi); border-bottom:1px solid transparent; transition:border-color var(--trans)}
+.link-forgot:hover{border-color:var(--gold-hi)}
+
+.btn-login{
+  width:100%; padding:13px; background:var(--gold); border:none; border-radius:var(--r3);
+  color:#1a1408; font-weight:600; font-size:14.5px; letter-spacing:.01em;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:filter var(--trans), transform var(--trans);
+}
+.btn-login:hover{filter:brightness(1.08)}
+.btn-login:active{transform:scale(.98)}
+.btn-login:disabled{opacity:.6; cursor:default}
+.btn-login .spin{width:15px;height:15px; border:2px solid rgba(26,20,8,.35); border-top-color:#1a1408; border-radius:50%; animation:spin .7s linear infinite; display:none}
+.btn-login.loading .spin{display:block}
+.btn-login.loading .btn-label{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.login-error{
+  display:flex; align-items:center; gap:8px; color:var(--red); font-size:13px;
+  background:rgba(226,113,107,.08); border:1px solid rgba(226,113,107,.25); border-radius:var(--r3);
+  padding:10px 12px; margin-bottom:20px;
+}
+.login-error svg{width:15px;height:15px; flex-shrink:0}
+
+.login-hint{margin-top:30px; font-size:12px; color:var(--muted); text-align:center}
+
+@media (max-width:860px){
+  .login-visual{display:none}
+  .login-formside{width:100%; min-width:0}
+}
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+#app{display:flex; height:100vh; overflow:hidden}
+
+.sidebar{
+  width:var(--sb-w); flex-shrink:0; background:var(--bg2); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; padding:22px 14px;
+  transition:transform var(--trans);
+}
+.sb-brand{display:flex; align-items:center; gap:10px; padding:6px 10px 26px}
+.sb-brand .mark{width:28px;height:28px;border:1px solid var(--border-hi);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-brand .mark svg{width:14px;height:14px;color:var(--gold-hi)}
+.sb-brand span{font-family:'Fraunces',serif; font-size:15.5px; color:var(--text)}
+
+.nav-group{margin-bottom:6px}
+.nav-item{
+  display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:var(--r3);
+  color:var(--text2); font-size:13.8px; margin-bottom:2px; transition:background var(--trans), color var(--trans);
+}
+.nav-item svg{width:16px;height:16px; flex-shrink:0}
+.nav-item:hover{background:var(--surface2); color:var(--text)}
+.nav-item.active{background:var(--surface3); color:var(--gold-hi); border:1px solid var(--border)}
+
+.sidebar-foot{margin-top:auto; padding-top:14px; border-top:1px solid var(--border)}
+.user-chip{
+  display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:var(--r3);
+  transition:background var(--trans);
+}
+.user-chip:hover{background:var(--surface2)}
+.avatar{
+  width:32px;height:32px;border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:'Fraunces',serif; font-size:13px; color:#1a1408; flex-shrink:0;
+}
+.user-chip .who{flex:1; min-width:0}
+.user-chip .who .name{font-size:13.3px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.user-chip .who .role{font-size:11.5px; color:var(--muted)}
+.user-chip svg{width:14px;height:14px;color:var(--muted)}
+
+.main{flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden}
+.topbar{
+  height:64px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between;
+  padding:0 28px; border-bottom:1px solid var(--border);
+}
+.topbar h1{font-family:'Fraunces',serif; font-weight:500; font-size:19px}
+.topbar .sub{font-size:12.5px; color:var(--muted); margin-top:2px}
+.btn-menu{display:none; background:none; border:none; color:var(--text2)}
+.topbar-right{display:flex; align-items:center; gap:10px}
+.logout-btn{
+  display:flex; align-items:center; gap:7px; font-size:13px; color:var(--text2);
+  border:1px solid var(--border); border-radius:var(--r3); padding:8px 13px; transition:all var(--trans);
+}
+.logout-btn:hover{border-color:var(--border-hi); color:var(--text)}
+.logout-btn svg{width:14px;height:14px}
+
+.page-scroll{flex:1; overflow-y:auto; padding:28px}
+.page{display:none}
+.page.active{display:block}
+
+/* generic components */
+.grid-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px; margin-bottom:28px}
+.stat-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:20px;
+}
+.stat-card .label{font-size:12.5px; color:var(--text2); margin-bottom:10px}
+.stat-card .value{font-family:'Fraunces',serif; font-size:28px; color:var(--text)}
+.stat-card .value.gold{color:var(--gold-hi)}
+
+.panel{background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden}
+.panel-head{
+  display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border);
+  gap:12px; flex-wrap:wrap;
+}
+.panel-head h3{font-family:'Fraunces',serif; font-weight:500; font-size:16px}
+.panel-tools{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+
+.btn{
+  display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:var(--r3);
+  font-size:13.3px; font-weight:600; border:1px solid transparent; transition:all var(--trans);
+}
+.btn svg{width:14px;height:14px}
+.btn-gold{background:var(--gold); color:#1a1408}
+.btn-gold:hover{filter:brightness(1.08)}
+.btn-ghost{background:transparent; border-color:var(--border-hi); color:var(--text2)}
+.btn-ghost:hover{color:var(--text); border-color:var(--gold-hi)}
+.btn-sm{padding:6px 11px; font-size:12.3px}
+.btn-icon{padding:7px; border-radius:var(--r3); border:1px solid var(--border); background:transparent; color:var(--text2)}
+.btn-icon:hover{color:var(--text); border-color:var(--border-hi)}
+
+.input, select.input, textarea.input{
+  width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--r3);
+  color:var(--text); padding:9px 12px; font-size:13.5px; outline:none; transition:border-color var(--trans);
+}
+.input:focus{border-color:var(--gold)}
+textarea.input{resize:vertical; min-height:70px}
+.search-input{position:relative}
+.search-input svg{position:absolute; left:11px; top:50%; transform:translateY(-50%); width:14px;height:14px; color:var(--muted)}
+.search-input input{padding-left:32px}
+
+table{width:100%; border-collapse:collapse}
+thead th{
+  text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);
+  padding:12px 20px; border-bottom:1px solid var(--border); font-weight:600;
+}
+tbody td{padding:14px 20px; border-bottom:1px solid var(--border); font-size:13.5px; vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+.row-empty td{text-align:center; color:var(--muted); padding:44px 20px}
+
+.badge{
+  display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:99px;
+  font-size:11.5px; font-weight:600; border:1px solid transparent;
+}
+.badge .dot{width:6px;height:6px;border-radius:50%; background:currentColor}
+.badge-muted{background:rgba(239,233,221,.06); color:var(--text2)}
+.badge-blue{background:rgba(141,178,214,.12); color:var(--blue)}
+.badge-amber{background:rgba(224,180,108,.12); color:var(--amber)}
+.badge-green{background:rgba(132,195,154,.12); color:var(--green)}
+.badge-red{background:rgba(226,113,107,.12); color:var(--red)}
+.badge-gold{background:rgba(201,165,112,.14); color:var(--gold-hi)}
+
+.icon-btn-row{display:flex; align-items:center; gap:6px}
+
+.kanban-wrap{display:flex; gap:16px; overflow-x:auto; padding-bottom:6px}
+.kcol{flex:1; min-width:250px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r)}
+.kcol-head{padding:14px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between}
+.kcol-head .t{font-size:13px; font-weight:600}
+.kcol-head .n{font-size:11.5px; color:var(--muted)}
+.kcol-body{padding:12px; display:flex; flex-direction:column; gap:10px; min-height:80px}
+.kcard{
+  background:var(--surface2); border:1px solid var(--border); border-radius:var(--r2); padding:12px 13px;
+  transition:border-color var(--trans);
+}
+.kcard:hover{border-color:var(--border-hi)}
+.kcard .t{font-size:13.3px; margin-bottom:6px; line-height:1.4}
+.kcard .meta{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px}
+.kcard .meta .date{font-size:11.5px; color:var(--muted)}
+
+/* modal */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(6,5,3,.6); backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center; z-index:200; padding:20px;
+  opacity:0; pointer-events:none; transition:opacity var(--trans);
+}
+.modal-overlay.open{opacity:1; pointer-events:auto}
+.modal-box{
+  width:100%; max-width:460px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--r);
+  box-shadow:var(--shadow); transform:translateY(10px); transition:transform var(--trans);
+  max-height:88vh; display:flex; flex-direction:column;
+}
+.modal-overlay.open .modal-box{transform:translateY(0)}
+.modal-head{display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--border)}
+.modal-head h3{font-family:'Fraunces',serif; font-weight:500; font-size:17px}
+.modal-close{background:none;border:none;color:var(--muted)}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:20px 22px; overflow-y:auto}
+.modal-body .field{margin-bottom:16px}
+.modal-body .field label{display:block; font-size:12.5px; color:var(--text2); margin-bottom:7px}
+.field-2col{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.modal-foot{display:flex; justify-content:flex-end; gap:10px; padding:16px 22px; border-top:1px solid var(--border)}
+
+/* toast */
+#toastHost{position:fixed; top:20px; right:20px; z-index:400; display:flex; flex-direction:column; gap:10px}
+.toast{
+  background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--r2); padding:12px 16px;
+  box-shadow:var(--shadow); font-size:13.3px; display:flex; align-items:center; gap:10px; min-width:240px;
+  animation:toastIn .25s ease;
+}
+.toast svg{width:16px;height:16px; flex-shrink:0}
+.toast.success svg{color:var(--green)}
+.toast.error svg{color:var(--red)}
+.toast.info svg{color:var(--blue)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+.profile-card{max-width:520px}
+.profile-avatar-lg{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:22px;color:#1a1408;margin-bottom:16px}
+.divider{height:1px; background:var(--border); margin:22px 0}
+
+@media (max-width:900px){
+  .sidebar{position:fixed; top:0; bottom:0; left:0; z-index:100; transform:translateX(-100%); box-shadow:var(--shadow)}
+  .sidebar.open{transform:translateX(0)}
+  .btn-menu{display:flex}
+  .field-2col{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN SCREEN
+     ============================================================ -->
+<div id="loginScreen">
+  <div class="login-visual">
+    <div class="orbit-wrap" id="orbitWrap"></div>
+    <div class="login-copy">
+      <div class="brand">
+        <div class="mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--gold-hi)"><path d="M4 20V9l8-6 8 6v11"/><path d="M9 20v-7h6v7"/></svg>
+        </div>
+        <span>DHP Studio</span>
+      </div>
+      <h1>Satu ruang kerja untuk konten, pelanggan, dan produksi visual.</h1>
+      <p>Rencanakan konten, kelola pelanggan, dan pantau progres desain &amp; video — semuanya rapi dalam satu alur kerja tim.</p>
+    </div>
+  </div>
+
+  <div class="login-formside">
+    <div class="login-form-inner">
+      <div class="eyebrow">Masuk</div>
+      <h2>Selamat datang kembali</h2>
+
+      <div class="login-error" id="loginError" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <span id="loginErrorText">Username atau password salah</span>
+      </div>
+
+      <form id="loginForm" autocomplete="off">
+        <div class="field">
+          <label for="loginUsername">Username</label>
+          <div class="field-input" id="wrapUsername">
+            <svg class="icon-lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+            <input id="loginUsername" placeholder="cth. moderator1" autocomplete="username">
+          </div>
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <div class="field-input" id="wrapPassword">
+            <svg class="icon-lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password">
+            <button type="button" class="toggle-eye" id="toggleEye">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="16" height="16"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="row-between">
+          <label class="check-remember">
+            <input type="checkbox" id="rememberMe" checked>
+            <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>
+            Ingat saya
+          </label>
+          <a href="javascript:void(0)" class="link-forgot" id="forgotLink">Lupa password?</a>
+        </div>
+
+        <button type="submit" class="btn-login" id="btnLogin">
+          <span class="spin"></span>
+          <span class="btn-label">Masuk</span>
+        </button>
+      </form>
+
+      <div class="login-hint">Hubungi moderator jika belum punya akun.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP SHELL
+     ============================================================ -->
+<div id="app" hidden>
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 20V9l8-6 8 6v11"/><path d="M9 20v-7h6v7"/></svg></div>
+      <span>DHP Studio</span>
+    </div>
+
+    <nav class="nav-group" id="navGroup"></nav>
+
+    <div class="sidebar-foot">
+      <a href="javascript:void(0)" class="user-chip" id="userChipBtn">
+        <div class="avatar" id="userAvatar"></div>
+        <div class="who">
+          <div class="name" id="userName">—</div>
+          <div class="role" id="userRole">—</div>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn-menu" id="btnMenu"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <div class="sub" id="pageSub">Ringkasan kerja hari ini</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="logout-btn" id="btnLogout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          Keluar
+        </button>
+      </div>
+    </div>
+
+    <div class="page-scroll">
+
+      <!-- ===== DASHBOARD ===== -->
+      <section class="page" id="page-dashboard">
+        <div class="grid-cards" id="dashStats"></div>
+        <div class="panel">
+          <div class="panel-head"><h3>Aktivitas terbaru</h3></div>
+          <table>
+            <thead><tr><th>Item</th><th>Tipe</th><th>Status</th><th>Update</th></tr></thead>
+            <tbody id="dashRecent"><tr class="row-empty"><td colspan="4">Memuat…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== CONTENT PLAN ===== -->
+      <section class="page" id="page-content">
+        <div class="panel" style="margin-bottom:20px">
+          <div class="panel-head">
+            <h3>Rencana Konten</h3>
+            <div class="panel-tools">
+              <select class="input" id="cpFilterStatus" style="width:150px">
+                <option value="">Semua status</option>
+                <option value="belum">Belum mulai</option>
+                <option value="proses">Proses</option>
+                <option value="review">Review</option>
+                <option value="selesai">Selesai</option>
+              </select>
+              <button class="btn btn-gold" id="btnAddContent">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                Konten Baru
+              </button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Konten</th><th>Platform</th><th>Tanggal</th><th>Ditugaskan</th><th>Status</th><th></th></tr></thead>
+            <tbody id="contentTableBody"><tr class="row-empty"><td colspan="6">Memuat…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== CRM ===== -->
+      <section class="page" id="page-crm">
+        <div class="grid-cards" id="crmStats"></div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Database Pelanggan</h3>
+            <div class="panel-tools">
+              <div class="search-input">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <input class="input" id="crmSearch" placeholder="Cari nama / nomor..." style="width:200px">
+              </div>
+              <select class="input" id="crmFilterStatus" style="width:140px">
+                <option value="">Semua status</option>
+                <option value="baru">Baru</option>
+                <option value="warm">Warm</option>
+                <option value="hot">Hot</option>
+                <option value="cold">Cold</option>
+                <option value="closing">Closing</option>
+              </select>
+              <button class="btn btn-gold" id="btnAddCustomer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                Pelanggan Baru
+              </button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Nama</th><th>Kontak</th><th>Status</th><th>Follow up terakhir</th><th></th></tr></thead>
+            <tbody id="crmTableBody"><tr class="row-empty"><td colspan="5">Memuat…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== DESAIN & VIDEO ===== -->
+      <section class="page" id="page-design">
+        <div class="panel-head" style="border:none;padding:0 0 16px">
+          <h3 class="serif" style="font-size:16px">Papan Tugas Desain &amp; Video</h3>
+          <div class="panel-tools">
+            <button class="btn btn-gold" id="btnAddDesign">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              Tugas Baru
+            </button>
+          </div>
+        </div>
+        <div class="kanban-wrap" id="designKanban"></div>
+      </section>
+
+      <!-- ===== TIM (moderator) ===== -->
+      <section class="page" id="page-team">
+        <div class="panel">
+          <div class="panel-head"><h3>Anggota Tim</h3></div>
+          <table>
+            <thead><tr><th>Nama</th><th>Username</th><th>Role</th></tr></thead>
+            <tbody id="teamTableBody"><tr class="row-empty"><td colspan="3">Memuat…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== PROFIL ===== -->
+      <section class="page" id="page-profile">
+        <div class="panel profile-card">
+          <div class="panel-head"><h3>Profil Saya</h3></div>
+          <div class="modal-body">
+            <div class="profile-avatar-lg" id="profAvatar"></div>
+            <div class="field">
+              <label>Nama tampilan</label>
+              <input class="input" id="profDisplayName">
+            </div>
+            <button class="btn btn-gold btn-sm" id="btnSaveName">Simpan nama</button>
+
+            <div class="divider"></div>
+
+            <div class="field">
+              <label>Password lama</label>
+              <input class="input" type="password" id="profOldPass">
+            </div>
+            <div class="field">
+              <label>Password baru</label>
+              <input class="input" type="password" id="profNewPass">
+            </div>
+            <button class="btn btn-ghost btn-sm" id="btnSavePass">Ganti password</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div id="toastHost"></div>
+
+<!-- ===== MODAL: Content ===== -->
+<div class="modal-overlay" id="modalContent">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="modalContentTitle">Konten Baru</h3><button class="modal-close" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cId">
+      <div class="field"><label>Judul konten</label><input class="input" id="cTitle" placeholder="cth. Promo Bedcover Musim Hujan"></div>
+      <div class="field-2col">
+        <div class="field"><label>Platform</label>
+          <select class="input" id="cPlatform"><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="shopee">Shopee</option><option value="lainnya">Lainnya</option></select>
+        </div>
+        <div class="field"><label>Jenis</label>
+          <select class="input" id="cType"><option value="feed">Feed</option><option value="reels">Reels</option><option value="carousel">Carousel</option><option value="story">Story</option><option value="video">Video</option><option value="lainnya">Lainnya</option></select>
+        </div>
+      </div>
+      <div class="field-2col">
+        <div class="field"><label>Tanggal tayang</label><input class="input" type="date" id="cDate"></div>
+        <div class="field"><label>Status</label>
+          <select class="input" id="cStatus"><option value="belum">Belum mulai</option><option value="proses">Proses</option><option value="review">Review</option><option value="selesai">Selesai</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Ditugaskan ke</label><select class="input" id="cAssignee"></select></div>
+      <div class="field"><label>Brief singkat</label><textarea class="input" id="cBrief" placeholder="Konsep, referensi, catatan..."></textarea></div>
+      <div class="field"><label>Link (opsional)</label><input class="input" id="cLink" placeholder="https://..."></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" id="btnDeleteContent" style="margin-right:auto;display:none">Hapus</button>
+      <button class="btn btn-ghost btn-sm" data-close>Batal</button>
+      <button class="btn btn-gold btn-sm" id="btnSaveContent">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Customer ===== -->
+<div class="modal-overlay" id="modalCustomer">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="modalCustomerTitle">Pelanggan Baru</h3><button class="modal-close" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="mId">
+      <div class="field"><label>Nama</label><input class="input" id="mName"></div>
+      <div class="field-2col">
+        <div class="field"><label>No. WhatsApp</label><input class="input" id="mPhone" placeholder="628..."></div>
+        <div class="field"><label>Status</label>
+          <select class="input" id="mStatus"><option value="baru">Baru</option><option value="warm">Warm</option><option value="hot">Hot</option><option value="cold">Cold</option><option value="closing">Closing</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Sumber</label><input class="input" id="mSource" placeholder="cth. Instagram Ads, TikTok Shop"></div>
+      <div class="field"><label>Catatan</label><textarea class="input" id="mNotes" placeholder="Kebutuhan, histori chat, dll."></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" id="btnDeleteCustomer" style="margin-right:auto;display:none">Hapus</button>
+      <button class="btn btn-ghost btn-sm" data-close>Batal</button>
+      <button class="btn btn-gold btn-sm" id="btnSaveCustomer">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Design Task ===== -->
+<div class="modal-overlay" id="modalDesign">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="modalDesignTitle">Tugas Baru</h3><button class="modal-close" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="dId">
+      <div class="field"><label>Judul tugas</label><input class="input" id="dTitle" placeholder="cth. Video Unboxing Produk"></div>
+      <div class="field-2col">
+        <div class="field"><label>Tipe</label>
+          <select class="input" id="dType"><option value="desain">Desain</option><option value="video">Video</option></select>
+        </div>
+        <div class="field"><label>Deadline</label><input class="input" type="date" id="dDeadline"></div>
+      </div>
+      <div class="field-2col">
+        <div class="field"><label>Status</label>
+          <select class="input" id="dStatus"><option value="belum">Belum mulai</option><option value="proses">Proses</option><option value="revisi">Revisi</option><option value="selesai">Selesai</option></select>
+        </div>
+        <div class="field"><label>Ditugaskan ke</label><select class="input" id="dAssignee"></select></div>
+      </div>
+      <div class="field"><label>Brief</label><textarea class="input" id="dBrief"></textarea></div>
+      <div class="field"><label>Link hasil (opsional)</label><input class="input" id="dLink" placeholder="https://..."></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" id="btnDeleteDesign" style="margin-right:auto;display:none">Hapus</button>
+      <button class="btn btn-ghost btn-sm" data-close>Batal</button>
+      <button class="btn btn-gold btn-sm" id="btnSaveDesign">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Follow up ===== -->
+<div class="modal-overlay" id="modalFollowup">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Catat Follow Up</h3><button class="modal-close" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="fuCustomerId">
+      <div class="field"><label>Catatan follow up</label><textarea class="input" id="fuNote" placeholder="cth. Sudah dihubungi, masih pertimbangkan harga"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" data-close>Batal</button>
+      <button class="btn btn-gold btn-sm" id="btnSaveFollowup">Simpan &amp; buka WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Lupa Password ===== -->
+<div class="modal-overlay" id="modalForgot">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Lupa password</h3><button class="modal-close" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <p style="color:var(--text2); font-size:13.5px; line-height:1.7">Untuk alasan keamanan, reset password tidak dilakukan otomatis. Hubungi moderator tim untuk mengatur ulang password akunmu.</p>
+    </div>
+    <div class="modal-foot"><button class="btn btn-gold btn-sm" data-close>Mengerti</button></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — ganti dengan project Supabase kamu sendiri
+   ============================================================ */
+const SUPABASE_URL = "https://hqnlzuzszcinlcdhjwbf.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_DxhOiOhA0UorsAqBoR0baA_gTO2RBkP";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let CURRENT_USER = null;
+let TEAM = [];
+let currentPage = "dashboard";
+
+const ROLE_LABEL = { moderator: "Moderator", content_creator: "Content Creator", desain_grafis: "Desain Grafis" };
+
+const NAV_BY_ROLE = {
+  moderator: [
+    { id: "dashboard", label: "Dashboard", icon: iconGrid() },
+    { id: "content",   label: "Rencana Konten", icon: iconCalendar() },
+    { id: "crm",       label: "CRM Pelanggan", icon: iconUsers() },
+    { id: "design",    label: "Desain & Video", icon: iconLayers() },
+    { id: "team",      label: "Tim", icon: iconTeam() },
+    { id: "profile",   label: "Profil", icon: iconUser() },
+  ],
+  content_creator: [
+    { id: "dashboard", label: "Dashboard", icon: iconGrid() },
+    { id: "content",   label: "Rencana Konten", icon: iconCalendar() },
+    { id: "profile",   label: "Profil", icon: iconUser() },
+  ],
+  desain_grafis: [
+    { id: "dashboard", label: "Dashboard", icon: iconGrid() },
+    { id: "design",    label: "Desain & Video", icon: iconLayers() },
+    { id: "profile",   label: "Profil", icon: iconUser() },
+  ],
+};
+
+const PAGE_META = {
+  dashboard: { title: "Dashboard", sub: "Ringkasan kerja hari ini" },
+  content:   { title: "Rencana Konten", sub: "Kalender & tugas konten tim" },
+  crm:       { title: "CRM Pelanggan", sub: "Database pelanggan & follow up" },
+  design:    { title: "Desain & Video", sub: "Papan tugas produksi visual" },
+  team:      { title: "Tim", sub: "Anggota tim DHP Studio" },
+  profile:   { title: "Profil Saya", sub: "Kelola nama & password" },
+};
+
+/* ============================================================
+   ICONS (inline, dipakai berulang)
+   ============================================================ */
+function iconGrid(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>`}
+function iconCalendar(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>`}
+function iconUsers(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="10" cy="7" r="3.2"/><path d="M22 20v-1a4 4 0 0 0-3-3.87"/><path d="M16.5 3.4a3.2 3.2 0 0 1 0 6.2"/></svg>`}
+function iconLayers(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg>`}
+function iconTeam(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="8" r="2.6"/><path d="M3 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><path d="M17 14.2a4 4 0 0 1 4 4V20"/></svg>`}
+function iconUser(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.6"/><path d="M4 20v-.5A6.5 6.5 0 0 1 10.5 13h3A6.5 6.5 0 0 1 20 19.5v.5"/></svg>`}
+function iconTrash(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>`}
+function iconEdit(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`}
+function iconWa(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L3 20l1.02-5.4A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 9.5c.3 2.8 2.2 4.7 5 5"/></svg>`}
+function iconCheck(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>`}
+function iconInfo(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>`}
+
+/* ============================================================
+   ANIMATED LOGIN VECTOR (SVG orbit, minimal & elegan)
+   ============================================================ */
+function renderOrbit(){
+  const el = document.getElementById("orbitWrap");
+  el.innerHTML = `
+  <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#c9a570" stop-opacity=".35"/>
+        <stop offset="100%" stop-color="#c9a570" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="200" cy="200" r="120" fill="url(#glow)"/>
+    <g stroke="#c9a570" stroke-opacity=".38" fill="none" stroke-width="1">
+      <circle cx="200" cy="200" r="150"/>
+      <circle cx="200" cy="200" r="108"/>
+      <circle cx="200" cy="200" r="66"/>
+    </g>
+    <g id="orbitA" style="transform-origin:200px 200px">
+      <circle cx="200" cy="50" r="5.5" fill="#e9d3a4"/>
+      <circle cx="200" cy="50" r="11" fill="none" stroke="#e9d3a4" stroke-opacity=".4"/>
+    </g>
+    <g id="orbitB" style="transform-origin:200px 200px">
+      <circle cx="308" cy="200" r="4" fill="#c9a570"/>
+    </g>
+    <g id="orbitC" style="transform-origin:200px 200px">
+      <circle cx="134" cy="200" r="3" fill="#efe9dd" fill-opacity=".8"/>
+    </g>
+    <circle cx="200" cy="200" r="26" fill="none" stroke="#e9d3a4" stroke-width="1.2"/>
+    <path d="M188 204v-14l12-8 12 8v14" fill="none" stroke="#e9d3a4" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+  const kf = [{transform:"rotate(0deg)"},{transform:"rotate(360deg)"}];
+  document.getElementById("orbitA").animate(kf,{duration:26000,iterations:Infinity,easing:"linear"});
+  document.getElementById("orbitB").animate(kf,{duration:17000,iterations:Infinity,easing:"linear"});
+  document.getElementById("orbitC").animate([{transform:"rotate(360deg)"},{transform:"rotate(0deg)"}],{duration:12000,iterations:Infinity,easing:"linear"});
+}
+renderOrbit();
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function toast(msg, type="info"){
+  const host = document.getElementById("toastHost");
+  const div = document.createElement("div");
+  div.className = `toast ${type}`;
+  const icon = type === "success" ? iconCheck() : (type === "error" ? iconInfo() : iconInfo());
+  div.innerHTML = `${icon}<span>${escapeHtml(msg)}</span>`;
+  host.appendChild(div);
+  setTimeout(() => { div.style.opacity = "0"; div.style.transform = "translateX(20px)"; setTimeout(() => div.remove(), 250); }, 3200);
+}
+function escapeHtml(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ============================================================
+   LOGIN LOGIC
+   ============================================================ */
+["Username","Password"].forEach(k => {
+  const input = document.getElementById("login"+k);
+  const wrap = document.getElementById("wrap"+k);
+  input.addEventListener("focus", () => wrap.classList.add("focused"));
+  input.addEventListener("blur", () => wrap.classList.remove("focused"));
+});
+
+document.getElementById("toggleEye").addEventListener("click", () => {
+  const inp = document.getElementById("loginPassword");
+  inp.type = inp.type === "password" ? "text" : "password";
+});
+
+document.getElementById("forgotLink").addEventListener("click", () => openModal("modalForgot"));
+
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const username = document.getElementById("loginUsername").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const remember = document.getElementById("rememberMe").checked;
+  const errBox = document.getElementById("loginError");
+  const btn = document.getElementById("btnLogin");
+  errBox.hidden = true;
+
+  if (!username || !password) {
+    document.getElementById("loginErrorText").textContent = "Isi username dan password";
+    errBox.hidden = false;
+    return;
+  }
+
+  btn.classList.add("loading"); btn.disabled = true;
+  try {
+    const { data, error } = await sb.rpc("login_user", { p_username: username, p_password: password });
+    if (error) throw error;
+    if (!data || !data.success) {
+      document.getElementById("loginErrorText").textContent = data?.message || "Username atau password salah";
+      errBox.hidden = false;
+      return;
+    }
+    persistSession(data.user, remember);
+    bootApp(data.user);
+  } catch (err) {
+    console.error(err);
+    document.getElementById("loginErrorText").textContent = "Gagal menghubungi server. Cek konfigurasi Supabase.";
+    errBox.hidden = false;
+  } finally {
+    btn.classList.remove("loading"); btn.disabled = false;
+  }
+});
+
+function persistSession(user, remember){
+  const payload = JSON.stringify(user);
+  if (remember) { localStorage.setItem("dhp_session", payload); sessionStorage.removeItem("dhp_session"); }
+  else { sessionStorage.setItem("dhp_session", payload); localStorage.removeItem("dhp_session"); }
+}
+function loadSession(){
+  const raw = localStorage.getItem("dhp_session") || sessionStorage.getItem("dhp_session");
+  return raw ? JSON.parse(raw) : null;
+}
+function clearSession(){
+  localStorage.removeItem("dhp_session"); sessionStorage.removeItem("dhp_session");
+}
+
+document.getElementById("btnLogout").addEventListener("click", () => {
+  clearSession();
+  CURRENT_USER = null;
+  document.getElementById("app").hidden = true;
+  document.getElementById("loginScreen").hidden = false;
+  document.getElementById("loginForm").reset();
+});
+
+/* ============================================================
+   BOOT APP
+   ============================================================ */
+async function bootApp(user){
+  CURRENT_USER = user;
+  document.getElementById("loginScreen").hidden = true;
+  document.getElementById("app").hidden = false;
+
+  document.getElementById("userName").textContent = user.display_name;
+  document.getElementById("userRole").textContent = ROLE_LABEL[user.role] || user.role;
+  const av = document.getElementById("userAvatar");
+  av.textContent = initials(user.display_name);
+  av.style.background = user.avatar_color || "#c9a570";
+
+  renderNav();
+  await loadTeam();
+  goPage("dashboard");
+}
+
+function initials(name){
+  return (name || "?").trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase()).join("");
+}
+
+function renderNav(){
+  const nav = NAV_BY_ROLE[CURRENT_USER.role] || [];
+  const el = document.getElementById("navGroup");
+  el.innerHTML = nav.map(n => `
+    <a href="javascript:void(0)" class="nav-item" data-page="${n.id}">${n.icon}<span>${n.label}</span></a>
+  `).join("");
+  el.querySelectorAll(".nav-item").forEach(a => a.addEventListener("click", () => goPage(a.dataset.page)));
+}
+
+function goPage(id){
+  currentPage = id;
+  document.querySelectorAll(".nav-item").forEach(a => a.classList.toggle("active", a.dataset.page === id));
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById("page-"+id)?.classList.add("active");
+  document.getElementById("pageTitle").textContent = PAGE_META[id]?.title || id;
+  document.getElementById("pageSub").textContent = PAGE_META[id]?.sub || "";
+  document.getElementById("sidebar").classList.remove("open");
+
+  if (id === "dashboard") loadDashboard();
+  if (id === "content") loadContent();
+  if (id === "crm") loadCrm();
+  if (id === "design") loadDesign();
+  if (id === "team") loadTeamPage();
+  if (id === "profile") loadProfile();
+}
+
+document.getElementById("btnMenu").addEventListener("click", () => document.getElementById("sidebar").classList.toggle("open"));
+document.getElementById("userChipBtn").addEventListener("click", () => goPage("profile"));
+
+/* ============================================================
+   TEAM
+   ============================================================ */
+async function loadTeam(){
+  // hanya field non-sensitif diambil lewat select biasa? tabel users terkunci RLS,
+  // jadi daftar tim diambil dari RPC ringan berbasis data yang sudah kita punya
+  // (creator & assignee dropdown pakai TEAM ini). Untuk versi awal, isi manual dari
+  // seed default; kalau kamu tambah user baru lewat SQL, tambahkan juga di sini
+  // ATAU ganti dengan RPC list_team() jika ingin dinamis penuh.
+  const { data, error } = await sb.rpc("list_team");
+  if (!error && data) { TEAM = data; return; }
+  TEAM = [];
+}
+
+function loadTeamPage(){
+  const tbody = document.getElementById("teamTableBody");
+  if (!TEAM.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="3">Belum ada data tim</td></tr>`; return; }
+  tbody.innerHTML = TEAM.map(u => `
+    <tr>
+      <td style="display:flex;align-items:center;gap:10px">
+        <div class="avatar" style="width:26px;height:26px;font-size:11px;background:${u.avatar_color||'#c9a570'}">${initials(u.display_name)}</div>
+        ${escapeHtml(u.display_name)}
+      </td>
+      <td>${escapeHtml(u.username)}</td>
+      <td><span class="badge badge-muted">${ROLE_LABEL[u.role]||u.role}</span></td>
+    </tr>
+  `).join("");
+}
+
+function teamOptions(roleFilter){
+  const list = roleFilter ? TEAM.filter(u => u.role === roleFilter) : TEAM;
+  return `<option value="">— Belum ditugaskan —</option>` + list.map(u => `<option value="${u.id}">${escapeHtml(u.display_name)}</option>`).join("");
+}
+function nameOf(id){ return TEAM.find(u => u.id === id)?.display_name || "—"; }
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+async function loadDashboard(){
+  const stats = document.getElementById("dashStats");
+  const recent = document.getElementById("dashRecent");
+  stats.innerHTML = "";
+  recent.innerHTML = `<tr class="row-empty"><td colspan="4">Memuat…</td></tr>`;
+
+  let cards = [];
+  let rows = [];
+
+  if (CURRENT_USER.role === "moderator") {
+    const [{ data: cp }, { data: crm }, { data: dt }] = await Promise.all([
+      sb.from("content_plan").select("*").order("created_at",{ascending:false}),
+      sb.from("crm_customers").select("*"),
+      sb.from("design_tasks").select("*").order("created_at",{ascending:false}),
+    ]);
+    const cpList = cp || [], crmList = crm || [], dtList = dt || [];
+    cards = [
+      { label:"Konten belum selesai", value: cpList.filter(c=>c.status!=="selesai").length },
+      { label:"Pelanggan hot/warm", value: crmList.filter(c=>c.status==="hot"||c.status==="warm").length },
+      { label:"Tugas desain berjalan", value: dtList.filter(d=>d.status==="proses"||d.status==="revisi").length },
+      { label:"Total pelanggan", value: crmList.length },
+    ];
+    rows = [
+      ...cpList.slice(0,4).map(c => ({item:c.title, tipe:"Konten", status:c.status, waktu:c.updated_at})),
+      ...dtList.slice(0,4).map(d => ({item:d.title, tipe:"Desain/Video", status:d.status, waktu:d.updated_at})),
+    ].sort((a,b)=> new Date(b.waktu)-new Date(a.waktu)).slice(0,6);
+  }
+
+  if (CURRENT_USER.role === "content_creator") {
+    const { data: cp } = await sb.from("content_plan").select("*").eq("assigned_to", CURRENT_USER.id).order("content_date");
+    const list = cp || [];
+    cards = [
+      { label:"Tugas saya", value: list.length },
+      { label:"Belum mulai", value: list.filter(c=>c.status==="belum").length },
+      { label:"Sedang proses", value: list.filter(c=>c.status==="proses").length },
+      { label:"Selesai", value: list.filter(c=>c.status==="selesai").length },
+    ];
+    rows = list.slice(0,6).map(c => ({item:c.title, tipe:c.platform, status:c.status, waktu:c.updated_at}));
+  }
+
+  if (CURRENT_USER.role === "desain_grafis") {
+    const { data: dt } = await sb.from("design_tasks").select("*").eq("assigned_to", CURRENT_USER.id).order("deadline");
+    const list = dt || [];
+    cards = [
+      { label:"Tugas saya", value: list.length },
+      { label:"Belum mulai", value: list.filter(d=>d.status==="belum").length },
+      { label:"Sedang proses", value: list.filter(d=>d.status==="proses").length },
+      { label:"Selesai", value: list.filter(d=>d.status==="selesai").length },
+    ];
+    rows = list.slice(0,6).map(d => ({item:d.title, tipe:d.task_type, status:d.status, waktu:d.updated_at}));
+  }
+
+  stats.innerHTML = cards.map(c => `<div class="stat-card"><div class="label">${c.label}</div><div class="value gold">${c.value}</div></div>`).join("");
+  recent.innerHTML = rows.length ? rows.map(r => `
+    <tr><td>${escapeHtml(r.item)}</td><td>${escapeHtml(r.tipe)}</td><td>${statusBadge(r.status)}</td><td>${timeAgo(r.waktu)}</td></tr>
+  `).join("") : `<tr class="row-empty"><td colspan="4">Belum ada aktivitas</td></tr>`;
+}
+
+function statusBadge(status){
+  const map = {
+    belum:["badge-muted","Belum mulai"], proses:["badge-blue","Proses"], review:["badge-amber","Review"],
+    revisi:["badge-amber","Revisi"], selesai:["badge-green","Selesai"],
+    baru:["badge-blue","Baru"], warm:["badge-amber","Warm"], hot:["badge-red","Hot"], cold:["badge-muted","Cold"], closing:["badge-green","Closing"],
+  };
+  const [cls,label] = map[status] || ["badge-muted", status];
+  return `<span class="badge ${cls}"><span class="dot"></span>${label}</span>`;
+}
+function timeAgo(iso){
+  if (!iso) return "—";
+  const diff = (Date.now() - new Date(iso).getTime())/1000;
+  if (diff < 60) return "Baru saja";
+  if (diff < 3600) return Math.floor(diff/60)+" menit lalu";
+  if (diff < 86400) return Math.floor(diff/3600)+" jam lalu";
+  return Math.floor(diff/86400)+" hari lalu";
+}
+function fmtDate(d){
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("id-ID",{ day:"numeric", month:"short", year:"numeric" });
+}
+
+/* ============================================================
+   CONTENT PLAN
+   ============================================================ */
+let CONTENT_CACHE = [];
+async function loadContent(){
+  document.getElementById("cpFilterStatus").onchange = renderContentTable;
+  let q = sb.from("content_plan").select("*").order("content_date",{ascending:true});
+  if (CURRENT_USER.role === "content_creator") q = q.eq("assigned_to", CURRENT_USER.id);
+  const { data, error } = await q;
+  if (error) { toast("Gagal memuat konten: "+error.message,"error"); return; }
+  CONTENT_CACHE = data || [];
+  renderContentTable();
+  document.getElementById("btnAddContent").style.display = CURRENT_USER.role === "moderator" ? "inline-flex" : "none";
+}
+function renderContentTable(){
+  const filter = document.getElementById("cpFilterStatus").value;
+  const list = filter ? CONTENT_CACHE.filter(c => c.status === filter) : CONTENT_CACHE;
+  const tbody = document.getElementById("contentTableBody");
+  if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="6">Belum ada konten</td></tr>`; return; }
+  tbody.innerHTML = list.map(c => `
+    <tr data-id="${c.id}">
+      <td>${escapeHtml(c.title)}</td>
+      <td style="text-transform:capitalize">${escapeHtml(c.platform)}</td>
+      <td>${fmtDate(c.content_date)}</td>
+      <td>${escapeHtml(nameOf(c.assigned_to))}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td>
+        <div class="icon-btn-row">
+          <button class="btn-icon" data-edit-content="${c.id}">${iconEdit()}</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-edit-content]").forEach(b => b.addEventListener("click", () => openContentModal(b.dataset.editContent)));
+}
+
+document.getElementById("btnAddContent").addEventListener("click", () => openContentModal());
+function openContentModal(id){
+  const c = id ? CONTENT_CACHE.find(x => x.id === id) : null;
+  document.getElementById("modalContentTitle").textContent = c ? "Edit Konten" : "Konten Baru";
+  document.getElementById("cId").value = c?.id || "";
+  document.getElementById("cTitle").value = c?.title || "";
+  document.getElementById("cPlatform").value = c?.platform || "instagram";
+  document.getElementById("cType").value = c?.content_type || "feed";
+  document.getElementById("cDate").value = c?.content_date || "";
+  document.getElementById("cStatus").value = c?.status || "belum";
+  document.getElementById("cAssignee").innerHTML = teamOptions("content_creator");
+  document.getElementById("cAssignee").value = c?.assigned_to || "";
+  document.getElementById("cBrief").value = c?.brief || "";
+  document.getElementById("cLink").value = c?.link_url || "";
+  document.getElementById("btnDeleteContent").style.display = (c && CURRENT_USER.role==="moderator") ? "inline-flex" : "none";
+  // content creator hanya boleh ubah status
+  const lockForCreator = CURRENT_USER.role === "content_creator";
+  ["cTitle","cPlatform","cType","cDate","cAssignee","cBrief","cLink"].forEach(id2 => document.getElementById(id2).disabled = lockForCreator);
+  openModal("modalContent");
+}
+document.getElementById("btnSaveContent").addEventListener("click", async () => {
+  const id = document.getElementById("cId").value;
+  const payload = {
+    title: document.getElementById("cTitle").value.trim(),
+    platform: document.getElementById("cPlatform").value,
+    content_type: document.getElementById("cType").value,
+    content_date: document.getElementById("cDate").value || null,
+    status: document.getElementById("cStatus").value,
+    assigned_to: document.getElementById("cAssignee").value || null,
+    brief: document.getElementById("cBrief").value.trim(),
+    link_url: document.getElementById("cLink").value.trim(),
+  };
+  if (CURRENT_USER.role === "content_creator") {
+    // hanya update status
+    const { error } = await sb.from("content_plan").update({ status: payload.status }).eq("id", id);
+    if (error) return toast(error.message,"error");
+    toast("Status konten diperbarui","success"); closeModal("modalContent"); loadContent(); return;
+  }
+  if (!payload.title || !payload.content_date) return toast("Judul dan tanggal wajib diisi","error");
+  let error;
+  if (id) { ({ error } = await sb.from("content_plan").update(payload).eq("id", id)); }
+  else { payload.created_by = CURRENT_USER.id; ({ error } = await sb.from("content_plan").insert(payload)); }
+  if (error) return toast(error.message,"error");
+  toast(id ? "Konten diperbarui" : "Konten ditambahkan","success");
+  closeModal("modalContent"); loadContent();
+});
+document.getElementById("btnDeleteContent").addEventListener("click", async () => {
+  const id = document.getElementById("cId").value;
+  if (!id || !confirm("Hapus konten ini?")) return;
+  const { error } = await sb.from("content_plan").delete().eq("id", id);
+  if (error) return toast(error.message,"error");
+  toast("Konten dihapus","success"); closeModal("modalContent"); loadContent();
+});
+
+/* ============================================================
+   CRM
+   ============================================================ */
+let CRM_CACHE = [];
+async function loadCrm(){
+  document.getElementById("crmSearch").oninput = renderCrmTable;
+  document.getElementById("crmFilterStatus").onchange = renderCrmTable;
+  const { data, error } = await sb.from("crm_customers").select("*").order("updated_at",{ascending:false});
+  if (error) { toast("Gagal memuat CRM: "+error.message,"error"); return; }
+  CRM_CACHE = data || [];
+  renderCrmStats();
+  renderCrmTable();
+}
+function renderCrmStats(){
+  const el = document.getElementById("crmStats");
+  const c = CRM_CACHE;
+  const cards = [
+    { label:"Total pelanggan", value: c.length },
+    { label:"Hot", value: c.filter(x=>x.status==="hot").length },
+    { label:"Warm", value: c.filter(x=>x.status==="warm").length },
+    { label:"Closing", value: c.filter(x=>x.status==="closing").length },
+  ];
+  el.innerHTML = cards.map(x => `<div class="stat-card"><div class="label">${x.label}</div><div class="value gold">${x.value}</div></div>`).join("");
+}
+function renderCrmTable(){
+  const search = document.getElementById("crmSearch").value.toLowerCase();
+  const filter = document.getElementById("crmFilterStatus").value;
+  let list = CRM_CACHE;
+  if (filter) list = list.filter(c => c.status === filter);
+  if (search) list = list.filter(c => c.name.toLowerCase().includes(search) || c.phone.includes(search));
+  const tbody = document.getElementById("crmTableBody");
+  if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="5">Belum ada pelanggan</td></tr>`; return; }
+  tbody.innerHTML = list.map(c => `
+    <tr>
+      <td>${escapeHtml(c.name)}</td>
+      <td>${escapeHtml(c.phone)}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td>${c.last_followup_at ? timeAgo(c.last_followup_at) : "Belum pernah"}</td>
+      <td>
+        <div class="icon-btn-row">
+          <button class="btn-icon" data-followup="${c.id}" title="Follow up">${iconWa()}</button>
+          <button class="btn-icon" data-edit-customer="${c.id}" title="Edit">${iconEdit()}</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-edit-customer]").forEach(b => b.addEventListener("click", () => openCustomerModal(b.dataset.editCustomer)));
+  tbody.querySelectorAll("[data-followup]").forEach(b => b.addEventListener("click", () => openFollowupModal(b.dataset.followup)));
+}
+
+document.getElementById("btnAddCustomer").addEventListener("click", () => openCustomerModal());
+function openCustomerModal(id){
+  const c = id ? CRM_CACHE.find(x => x.id === id) : null;
+  document.getElementById("modalCustomerTitle").textContent = c ? "Edit Pelanggan" : "Pelanggan Baru";
+  document.getElementById("mId").value = c?.id || "";
+  document.getElementById("mName").value = c?.name || "";
+  document.getElementById("mPhone").value = c?.phone || "";
+  document.getElementById("mStatus").value = c?.status || "baru";
+  document.getElementById("mSource").value = c?.source || "";
+  document.getElementById("mNotes").value = c?.notes || "";
+  document.getElementById("btnDeleteCustomer").style.display = c ? "inline-flex" : "none";
+  openModal("modalCustomer");
+}
+document.getElementById("btnSaveCustomer").addEventListener("click", async () => {
+  const id = document.getElementById("mId").value;
+  const payload = {
+    name: document.getElementById("mName").value.trim(),
+    phone: document.getElementById("mPhone").value.trim(),
+    status: document.getElementById("mStatus").value,
+    source: document.getElementById("mSource").value.trim(),
+    notes: document.getElementById("mNotes").value.trim(),
+  };
+  if (!payload.name || !payload.phone) return toast("Nama dan nomor WA wajib diisi","error");
+  let error;
+  if (id) { ({ error } = await sb.from("crm_customers").update(payload).eq("id", id)); }
+  else { payload.created_by = CURRENT_USER.id; ({ error } = await sb.from("crm_customers").insert(payload)); }
+  if (error) return toast(error.message,"error");
+  toast(id ? "Data pelanggan diperbarui" : "Pelanggan ditambahkan","success");
+  closeModal("modalCustomer"); loadCrm();
+});
+document.getElementById("btnDeleteCustomer").addEventListener("click", async () => {
+  const id = document.getElementById("mId").value;
+  if (!id || !confirm("Hapus pelanggan ini?")) return;
+  const { error } = await sb.from("crm_customers").delete().eq("id", id);
+  if (error) return toast(error.message,"error");
+  toast("Pelanggan dihapus","success"); closeModal("modalCustomer"); loadCrm();
+});
+
+function openFollowupModal(id){
+  document.getElementById("fuCustomerId").value = id;
+  document.getElementById("fuNote").value = "";
+  openModal("modalFollowup");
+}
+document.getElementById("btnSaveFollowup").addEventListener("click", async () => {
+  const id = document.getElementById("fuCustomerId").value;
+  const note = document.getElementById("fuNote").value.trim();
+  const customer = CRM_CACHE.find(c => c.id === id);
+  if (!note) return toast("Isi catatan follow up dulu","error");
+  const { error: e1 } = await sb.from("crm_followup_logs").insert({ customer_id:id, note, followed_up_by:CURRENT_USER.id });
+  const { error: e2 } = await sb.from("crm_customers").update({ last_followup_at: new Date().toISOString() }).eq("id", id);
+  if (e1 || e2) return toast((e1||e2).message,"error");
+  toast("Follow up dicatat","success");
+  closeModal("modalFollowup");
+  loadCrm();
+  if (customer?.phone) {
+    const phone = customer.phone.replace(/[^0-9]/g,"");
+    window.open(`https://wa.me/${phone}`, "_blank");
+  }
+});
+
+/* ============================================================
+   DESAIN & VIDEO — kanban
+   ============================================================ */
+let DESIGN_CACHE = [];
+const DESIGN_COLS = [
+  { id:"belum", label:"Belum mulai" }, { id:"proses", label:"Proses" },
+  { id:"revisi", label:"Revisi" }, { id:"selesai", label:"Selesai" },
+];
+async function loadDesign(){
+  let q = sb.from("design_tasks").select("*").order("deadline",{ascending:true});
+  if (CURRENT_USER.role === "desain_grafis") q = q.eq("assigned_to", CURRENT_USER.id);
+  const { data, error } = await q;
+  if (error) { toast("Gagal memuat tugas: "+error.message,"error"); return; }
+  DESIGN_CACHE = data || [];
+  renderDesignKanban();
+  document.getElementById("btnAddDesign").style.display = CURRENT_USER.role === "moderator" ? "inline-flex" : "none";
+}
+function renderDesignKanban(){
+  const wrap = document.getElementById("designKanban");
+  wrap.innerHTML = DESIGN_COLS.map(col => {
+    const items = DESIGN_CACHE.filter(d => d.status === col.id);
+    return `
+    <div class="kcol">
+      <div class="kcol-head"><span class="t">${col.label}</span><span class="n">${items.length}</span></div>
+      <div class="kcol-body">
+        ${items.length ? items.map(d => `
+          <div class="kcard" data-edit-design="${d.id}">
+            <div class="t">${escapeHtml(d.title)}</div>
+            <span class="badge ${d.task_type==='video'?'badge-blue':'badge-gold'}">${d.task_type==='video'?'Video':'Desain'}</span>
+            <div class="meta"><span class="date">${d.deadline ? "Deadline "+fmtDate(d.deadline) : "Tanpa deadline"}</span></div>
+          </div>
+        `).join("") : `<div style="color:var(--muted); font-size:12.5px; text-align:center; padding:20px 0">Kosong</div>`}
+      </div>
+    </div>`;
+  }).join("");
+  wrap.querySelectorAll("[data-edit-design]").forEach(b => b.addEventListener("click", () => openDesignModal(b.dataset.editDesign)));
+}
+
+document.getElementById("btnAddDesign").addEventListener("click", () => openDesignModal());
+function openDesignModal(id){
+  const d = id ? DESIGN_CACHE.find(x => x.id === id) : null;
+  document.getElementById("modalDesignTitle").textContent = d ? "Edit Tugas" : "Tugas Baru";
+  document.getElementById("dId").value = d?.id || "";
+  document.getElementById("dTitle").value = d?.title || "";
+  document.getElementById("dType").value = d?.task_type || "desain";
+  document.getElementById("dDeadline").value = d?.deadline || "";
+  document.getElementById("dStatus").value = d?.status || "belum";
+  document.getElementById("dAssignee").innerHTML = teamOptions("desain_grafis");
+  document.getElementById("dAssignee").value = d?.assigned_to || "";
+  document.getElementById("dBrief").value = d?.brief || "";
+  document.getElementById("dLink").value = d?.link_url || "";
+  document.getElementById("btnDeleteDesign").style.display = (d && CURRENT_USER.role==="moderator") ? "inline-flex" : "none";
+  const lockForDesainer = CURRENT_USER.role === "desain_grafis";
+  ["dTitle","dType","dDeadline","dAssignee","dBrief"].forEach(id2 => document.getElementById(id2).disabled = lockForDesainer);
+  openModal("modalDesign");
+}
+document.getElementById("btnSaveDesign").addEventListener("click", async () => {
+  const id = document.getElementById("dId").value;
+  if (CURRENT_USER.role === "desain_grafis") {
+    const payload = { status: document.getElementById("dStatus").value, link_url: document.getElementById("dLink").value.trim() };
+    const { error } = await sb.from("design_tasks").update(payload).eq("id", id);
+    if (error) return toast(error.message,"error");
+    toast("Tugas diperbarui","success"); closeModal("modalDesign"); loadDesign(); return;
+  }
+  const payload = {
+    title: document.getElementById("dTitle").value.trim(),
+    task_type: document.getElementById("dType").value,
+    deadline: document.getElementById("dDeadline").value || null,
+    status: document.getElementById("dStatus").value,
+    assigned_to: document.getElementById("dAssignee").value || null,
+    brief: document.getElementById("dBrief").value.trim(),
+    link_url: document.getElementById("dLink").value.trim(),
+  };
+  if (!payload.title) return toast("Judul tugas wajib diisi","error");
+  let error;
+  if (id) { ({ error } = await sb.from("design_tasks").update(payload).eq("id", id)); }
+  else { payload.created_by = CURRENT_USER.id; ({ error } = await sb.from("design_tasks").insert(payload)); }
+  if (error) return toast(error.message,"error");
+  toast(id ? "Tugas diperbarui" : "Tugas ditambahkan","success");
+  closeModal("modalDesign"); loadDesign();
+});
+document.getElementById("btnDeleteDesign").addEventListener("click", async () => {
+  const id = document.getElementById("dId").value;
+  if (!id || !confirm("Hapus tugas ini?")) return;
+  const { error } = await sb.from("design_tasks").delete().eq("id", id);
+  if (error) return toast(error.message,"error");
+  toast("Tugas dihapus","success"); closeModal("modalDesign"); loadDesign();
+});
+
+/* ============================================================
+   PROFIL
+   ============================================================ */
+function loadProfile(){
+  document.getElementById("profAvatar").textContent = initials(CURRENT_USER.display_name);
+  document.getElementById("profAvatar").style.background = CURRENT_USER.avatar_color || "#c9a570";
+  document.getElementById("profDisplayName").value = CURRENT_USER.display_name;
+  document.getElementById("profOldPass").value = "";
+  document.getElementById("profNewPass").value = "";
+}
+document.getElementById("btnSaveName").addEventListener("click", async () => {
+  const name = document.getElementById("profDisplayName").value.trim();
+  if (name.length < 2) return toast("Nama minimal 2 karakter","error");
+  const { data, error } = await sb.rpc("update_display_name", { p_user_id: CURRENT_USER.id, p_new_name: name });
+  if (error || !data?.success) return toast(data?.message || error.message, "error");
+  CURRENT_USER.display_name = name;
+  persistSession(CURRENT_USER, !!localStorage.getItem("dhp_session") || true);
+  document.getElementById("userName").textContent = name;
+  document.getElementById("userAvatar").textContent = initials(name);
+  toast("Nama berhasil diperbarui","success");
+  loadTeam();
+});
+document.getElementById("btnSavePass").addEventListener("click", async () => {
+  const oldPass = document.getElementById("profOldPass").value;
+  const newPass = document.getElementById("profNewPass").value;
+  if (!oldPass || !newPass) return toast("Isi kedua kolom password","error");
+  const { data, error } = await sb.rpc("change_password", { p_user_id: CURRENT_USER.id, p_old_password: oldPass, p_new_password: newPass });
+  if (error || !data?.success) return toast(data?.message || error.message, "error");
+  toast("Password berhasil diganti","success");
+  document.getElementById("profOldPass").value = ""; document.getElementById("profNewPass").value = "";
+});
+
+/* ============================================================
+   MODAL HELPERS
+   ============================================================ */
+function openModal(id){ document.getElementById(id).classList.add("open"); }
+function closeModal(id){ document.getElementById(id).classList.remove("open"); }
+document.querySelectorAll(".modal-overlay").forEach(ov => {
+  ov.addEventListener("click", (e) => { if (e.target === ov) ov.classList.remove("open"); });
+  ov.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => ov.classList.remove("open")));
+});
+
+/* ============================================================
+   INIT — auto-login jika ada sesi tersimpan
+   ============================================================ */
+(function init(){
+  const saved = loadSession();
+  if (saved) bootApp(saved);
+})();
+</script>
+</body>
+</html>
