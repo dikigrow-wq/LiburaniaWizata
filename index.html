@@ -828,8 +828,8 @@ tbody tr:hover{background:var(--surface2)}
           </div>
           <div class="table-responsive">
           <table>
-            <thead><tr><th>Nama</th><th>Kontak</th><th>Status</th><th>Follow up terakhir</th><th></th></tr></thead>
-            <tbody id="crmTableBody"><tr class="row-empty"><td colspan="5">Memuat…</td></tr></tbody>
+            <thead><tr><th>Nama</th><th>Kontak</th><th>Kriteria</th><th>Tgl input</th><th>Follow up</th><th></th></tr></thead>
+            <tbody id="crmTableBody"><tr class="row-empty"><td colspan="6">Memuat…</td></tr></tbody>
           </table>
           </div>
         </div>
@@ -866,8 +866,8 @@ tbody tr:hover{background:var(--surface2)}
           </div>
           <div class="table-responsive" style="margin-top:12px">
             <table>
-              <thead><tr><th>Nama</th><th>No. HP</th><th>Kategori</th><th>Keterangan</th><th>Input oleh</th><th></th></tr></thead>
-              <tbody id="adLeadsTableBody"><tr class="row-empty"><td colspan="6">Pilih tanggal di kalender</td></tr></tbody>
+              <thead><tr><th>Nama</th><th>No. HP</th><th>Kategori</th><th>Keterangan</th><th>Tgl input</th><th>Input oleh</th><th></th></tr></thead>
+              <tbody id="adLeadsTableBody"><tr class="row-empty"><td colspan="7">Pilih tanggal di kalender</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1260,10 +1260,19 @@ tbody tr:hover{background:var(--surface2)}
     <div class="modal-body">
       <input type="hidden" id="fuCustomerId">
       <div class="field"><label>Catatan follow up</label><textarea class="input" id="fuNote" placeholder="cth. Sudah dihubungi, masih pertimbangkan harga"></textarea></div>
+      <div class="field"><label>Update kriteria / progress</label>
+        <select class="input" id="fuStatus">
+          <option value="baru">Baru</option>
+          <option value="warm">Warm</option>
+          <option value="hot">Hot</option>
+          <option value="cold">Cold</option>
+          <option value="closing">Closing</option>
+        </select>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost btn-sm" data-close>Batal</button>
-      <button class="btn btn-gold btn-sm" id="btnSaveFollowup">Simpan &amp; buka WhatsApp</button>
+      <button class="btn btn-gold btn-sm" id="btnSaveFollowup">Simpan Follow Up</button>
     </div>
   </div>
 </div>
@@ -2201,7 +2210,6 @@ let CRM_CACHE = [];
 async function loadCrm(){
   document.getElementById("crmSearch").oninput = renderCrmTable;
   document.getElementById("crmFilterStatus").onchange = renderCrmTable;
-  document.getElementById("btnAddCustomer").style.display = CURRENT_USER.role === "b2b" ? "none" : "inline-flex";
   let q = sb.from("crm_customers").select("*").order("updated_at",{ascending:false});
   if (CURRENT_USER.role === "b2b") q = q.eq("created_by", CURRENT_USER.id);
   const { data, error } = await q;
@@ -2242,19 +2250,21 @@ function renderCrmTable(){
     return ta - tb;
   });
   const tbody = document.getElementById("crmTableBody");
-  if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="5">Belum ada pelanggan</td></tr>`; return; }
+  if (!list.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="6">Belum ada pelanggan</td></tr>`; return; }
   tbody.innerHTML = list.map(c => `
     <tr>
       <td data-label="Nama">${escapeHtml(c.name)}</td>
       <td data-label="Kontak">${escapeHtml(c.phone)}</td>
-      <td data-label="Status">${statusBadge(c.status)}</td>
+      <td data-label="Kriteria">${statusBadge(c.status)}</td>
+      <td data-label="Tgl input">${fmtDate(c.created_at)}<div style="font-size:11px;color:var(--muted);margin-top:2px">oleh ${escapeHtml(nameOf(c.created_by))}</div></td>
       <td data-label="Follow up">
-        ${c.last_followup_at ? timeAgo(c.last_followup_at) : "Belum pernah"}
-        ${needsFollowup(c) ? `<span class="badge badge-red" style="margin-left:6px"><span class="dot"></span>Perlu follow up</span>` : ""}
+        ${needsFollowup(c) ? `<span class="badge badge-red"><span class="dot"></span>Belum follow up</span>` : `<span class="badge badge-green"><span class="dot"></span>Sudah follow up</span>`}
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">${c.last_followup_at ? timeAgo(c.last_followup_at) : "Belum pernah dihubungi"}</div>
       </td>
       <td data-label="">
         <div class="icon-btn-row">
-          <button class="btn-icon" data-followup="${c.id}" title="Follow up">${iconWa()}</button>
+          <button class="btn-icon" data-wa="${c.id}" title="Chat WhatsApp">${iconWa()}</button>
+          <button class="btn-icon" data-followup="${c.id}" title="Catat follow up / update progress">${iconCheck()}</button>
           <button class="btn-icon" data-history="${c.id}" title="Riwayat follow up">${iconHistory()}</button>
           <button class="btn-icon" data-edit-customer="${c.id}" title="Edit">${iconEdit()}</button>
         </div>
@@ -2264,6 +2274,10 @@ function renderCrmTable(){
   tbody.querySelectorAll("[data-edit-customer]").forEach(b => b.addEventListener("click", () => openCustomerModal(b.dataset.editCustomer)));
   tbody.querySelectorAll("[data-followup]").forEach(b => b.addEventListener("click", () => openFollowupModal(b.dataset.followup)));
   tbody.querySelectorAll("[data-history]").forEach(b => b.addEventListener("click", () => openFollowupHistory(b.dataset.history)));
+  tbody.querySelectorAll("[data-wa]").forEach(b => b.addEventListener("click", () => {
+    const customer = CRM_CACHE.find(c => c.id === b.dataset.wa);
+    if (customer?.phone) window.open(`https://wa.me/${customer.phone.replace(/[^0-9]/g,"")}`, "_blank");
+  }));
   CRM_VISIBLE = list;
 }
 let CRM_VISIBLE = [];
@@ -2309,8 +2323,14 @@ document.getElementById("btnSaveCustomer").addEventListener("click", async () =>
   };
   if (!payload.name || !payload.phone) return toast("Nama dan nomor WA wajib diisi","error");
   let error;
+  // saat baru diisi, dianggap sudah "difollow up" (kontak pertama) supaya tidak
+  // langsung muncul badge "Belum follow up" begitu data dibuat
   if (id) { ({ error } = await sb.from("crm_customers").update(payload).eq("id", id)); }
-  else { payload.created_by = CURRENT_USER.id; ({ error } = await sb.from("crm_customers").insert(payload)); }
+  else {
+    payload.created_by = CURRENT_USER.id;
+    payload.last_followup_at = new Date().toISOString();
+    ({ error } = await sb.from("crm_customers").insert(payload));
+  }
   if (error) return toast(error.message,"error");
   toast(id ? "Data pelanggan diperbarui" : "Pelanggan ditambahkan","success");
   closeModal("modalCustomer"); loadCrm();
@@ -2324,25 +2344,23 @@ document.getElementById("btnDeleteCustomer").addEventListener("click", async () 
 });
 
 function openFollowupModal(id){
+  const customer = CRM_CACHE.find(c => c.id === id);
   document.getElementById("fuCustomerId").value = id;
   document.getElementById("fuNote").value = "";
+  document.getElementById("fuStatus").value = customer?.status || "baru";
   openModal("modalFollowup");
 }
 document.getElementById("btnSaveFollowup").addEventListener("click", async () => {
   const id = document.getElementById("fuCustomerId").value;
   const note = document.getElementById("fuNote").value.trim();
-  const customer = CRM_CACHE.find(c => c.id === id);
+  const newStatus = document.getElementById("fuStatus").value;
   if (!note) return toast("Isi catatan follow up dulu","error");
   const { error: e1 } = await sb.from("crm_followup_logs").insert({ customer_id:id, note, followed_up_by:CURRENT_USER.id });
-  const { error: e2 } = await sb.from("crm_customers").update({ last_followup_at: new Date().toISOString() }).eq("id", id);
+  const { error: e2 } = await sb.from("crm_customers").update({ last_followup_at: new Date().toISOString(), status: newStatus }).eq("id", id);
   if (e1 || e2) return toast((e1||e2).message,"error");
-  toast("Follow up dicatat","success");
+  toast("Follow up dicatat & progress diperbarui","success");
   closeModal("modalFollowup");
   loadCrm();
-  if (customer?.phone) {
-    const phone = customer.phone.replace(/[^0-9]/g,"");
-    window.open(`https://wa.me/${phone}`, "_blank");
-  }
 });
 
 /* ============================================================
@@ -2438,15 +2456,16 @@ function renderAdDayPanel(){
 
 function renderLeadsTable(ad){
   const tbody = document.getElementById("adLeadsTableBody");
-  if (!ad) { tbody.innerHTML = `<tr class="row-empty"><td colspan="6">Belum ada iklan di tanggal ini</td></tr>`; return; }
+  if (!ad) { tbody.innerHTML = `<tr class="row-empty"><td colspan="7">Belum ada iklan di tanggal ini</td></tr>`; return; }
   const leads = leadsForAd(ad.id);
-  if (!leads.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="6">Belum ada leads masuk untuk iklan ini</td></tr>`; return; }
+  if (!leads.length) { tbody.innerHTML = `<tr class="row-empty"><td colspan="7">Belum ada leads masuk untuk iklan ini</td></tr>`; return; }
   tbody.innerHTML = leads.map(l => `
     <tr>
       <td data-label="Nama">${escapeHtml(l.name)}</td>
       <td data-label="No. HP">${escapeHtml(l.phone)}</td>
       <td data-label="Kategori">${statusBadge(l.status)}</td>
       <td data-label="Keterangan">${escapeHtml(l.notes||"—")}</td>
+      <td data-label="Tgl input">${fmtDate(l.created_at)}</td>
       <td data-label="Input oleh">${escapeHtml(nameOf(l.created_by))}</td>
       <td data-label="">
         <div class="icon-btn-row">
@@ -2573,7 +2592,11 @@ document.getElementById("btnSaveLead").addEventListener("click", async () => {
   };
   let error;
   if (id) { ({ error } = await sb.from("crm_customers").update(payload).eq("id", id)); }
-  else { payload.created_by = CURRENT_USER.id; ({ error } = await sb.from("crm_customers").insert(payload)); }
+  else {
+    payload.created_by = CURRENT_USER.id;
+    payload.last_followup_at = new Date().toISOString();
+    ({ error } = await sb.from("crm_customers").insert(payload));
+  }
   if (error) return toast(error.message,"error");
   toast(id ? "Lead diperbarui" : "Lead ditambahkan ke CRM","success");
   closeModal("modalLead"); loadAds();
