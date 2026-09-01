@@ -1906,69 +1906,56 @@ function teamOptions(roleFilter){
 function nameOf(id){ return TEAM.find(u => u.id === id)?.display_name || "—"; }
 
 /* ============================================================
-   NOTIFICATIONS — bell per role, realtime, popover dismiss-on-click
+   NOTIFICATIONS — 1 lonceng, fungsi beda per role, realtime, dismiss-on-click
+   - moderator      : notif saat tim (konten/desain/b2b) mengerjakan/update tugas
+   - content_creator: notif saat moderator kasih job konten baru
+   - desain_grafis  : notif saat moderator kasih tugas desain baru
+   - b2b            : notif saat moderator jadwalkan iklan baru
    ============================================================ */
 let NOTIF_CACHE = [];
-let NOTIF_OPEN_TYPE = null;
-const NOTIF_TYPE_META = {
-  content: { label:"Konten", icon: iconNotifContent(), css:"c-content", bg:"rgba(141,178,214,.14)" },
-  design:  { label:"Desain", icon: iconNotifDesign(), css:"c-design", bg:"rgba(132,195,154,.14)" },
-  ads:     { label:"Iklan",  icon: iconNotifAds(),  css:"c-ads",     bg:"rgba(224,180,108,.14)" },
+let NOTIF_OPEN = false;
+const NOTIF_CATEGORY_META = {
+  content: { icon: iconNotifContent(), bg:"rgba(141,178,214,.16)" },
+  design:  { icon: iconNotifDesign(), bg:"rgba(132,195,154,.16)" },
+  ads:     { icon: iconNotifAds(),  bg:"rgba(224,180,108,.16)" },
 };
-function notifTypesForRole(role){
-  if (role === "moderator") return ["content","design","ads"];
-  if (role === "content_creator") return ["content"];
-  if (role === "desain_grafis") return ["design"];
-  if (role === "b2b") return ["ads"];
-  return [];
-}
-function notifUnreadCount(type){
-  return NOTIF_CACHE.filter(n => n.type === type && !(n.read_by||[]).includes(CURRENT_USER.id)).length;
+function notifUnreadCount(){
+  return NOTIF_CACHE.filter(n => !(n.read_by||[]).includes(CURRENT_USER.id)).length;
 }
 async function loadNotifications(){
-  const types = notifTypesForRole(CURRENT_USER.role);
-  if (!types.length) { NOTIF_CACHE = []; renderNotifBells(); return; }
-  const { data, error } = await sb.from("notifications").select("*").in("type", types).order("created_at",{ascending:false}).limit(60);
+  if (!CURRENT_USER) return;
+  const { data, error } = await sb.from("notifications").select("*").eq("audience", CURRENT_USER.role).order("created_at",{ascending:false}).limit(60);
   if (!error) NOTIF_CACHE = data || [];
-  renderNotifBells();
+  renderNotifBell();
 }
-function renderNotifBells(){
+function renderNotifBell(){
   const wrap = document.getElementById("notifBells");
   if (!wrap || !CURRENT_USER) return;
-  const types = notifTypesForRole(CURRENT_USER.role);
-  wrap.innerHTML = types.map(t => {
-    const meta = NOTIF_TYPE_META[t];
-    const count = notifUnreadCount(t);
-    return `
-    <div class="notif-bell-wrap" data-notif-wrap="${t}">
-      <button type="button" class="notif-bell ${count?'has-unread':''}" data-notif-bell="${t}" title="Notifikasi ${meta.label}">
-        ${meta.icon}${count ? `<span class="notif-dot">${count>9?'9+':count}</span>` : ``}
+  const count = notifUnreadCount();
+  wrap.innerHTML = `
+    <div class="notif-bell-wrap">
+      <button type="button" class="notif-bell ${count?'has-unread':''}" id="notifBellBtn" title="Notifikasi">
+        ${iconBell()}${count ? `<span class="notif-dot">${count>9?'9+':count}</span>` : ``}
       </button>
-      <div class="notif-popover" id="notifPop-${t}">
+      <div class="notif-popover" id="notifPop">
         <div class="notif-popover-head">
-          <h4>Notifikasi ${meta.label}</h4>
+          <h4>Notifikasi</h4>
           <span>${count} belum dibaca</span>
         </div>
-        <div class="notif-list" id="notifList-${t}"></div>
+        <div class="notif-list" id="notifList"></div>
       </div>
     </div>`;
-  }).join("");
-  types.forEach(t => {
-    renderNotifList(t);
-    document.querySelector(`[data-notif-bell="${t}"]`)?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      toggleNotifPopover(t);
-    });
-  });
+  renderNotifList();
+  document.getElementById("notifBellBtn")?.addEventListener("click", (e) => { e.stopPropagation(); toggleNotifPopover(); });
   applyNotifOpenState();
 }
-function renderNotifList(type){
-  const el = document.getElementById(`notifList-${type}`);
+function renderNotifList(){
+  const el = document.getElementById("notifList");
   if (!el) return;
-  const meta = NOTIF_TYPE_META[type];
-  const items = NOTIF_CACHE.filter(n => n.type === type);
-  if (!items.length) { el.innerHTML = `<div class="notif-empty">Belum ada notifikasi ${meta.label.toLowerCase()}</div>`; return; }
-  el.innerHTML = items.map(n => `
+  if (!NOTIF_CACHE.length) { el.innerHTML = `<div class="notif-empty">Belum ada notifikasi</div>`; return; }
+  el.innerHTML = NOTIF_CACHE.map(n => {
+    const meta = NOTIF_CATEGORY_META[n.category] || NOTIF_CATEGORY_META.content;
+    return `
     <div class="notif-item" data-notif-item="${n.id}">
       <div class="ic" style="background:${meta.bg};color:var(--text)">${meta.icon}</div>
       <div class="body">
@@ -1977,22 +1964,21 @@ function renderNotifList(type){
         <div class="time">${timeAgo(n.created_at)}</div>
       </div>
       <div class="x">${iconNotifClose()}</div>
-    </div>
-  `).join("");
+    </div>`;
+  }).join("");
   el.querySelectorAll("[data-notif-item]").forEach(row => {
     row.addEventListener("click", () => dismissNotification(row.dataset.notifItem));
   });
 }
-function toggleNotifPopover(type){
-  NOTIF_OPEN_TYPE = (NOTIF_OPEN_TYPE === type) ? null : type;
+function toggleNotifPopover(){
+  NOTIF_OPEN = !NOTIF_OPEN;
   applyNotifOpenState();
 }
 function applyNotifOpenState(){
-  document.querySelectorAll(".notif-popover").forEach(p => p.classList.remove("open"));
-  if (NOTIF_OPEN_TYPE) document.getElementById(`notifPop-${NOTIF_OPEN_TYPE}`)?.classList.add("open");
+  document.getElementById("notifPop")?.classList.toggle("open", NOTIF_OPEN);
 }
 document.addEventListener("click", (e) => {
-  if (!e.target.closest(".notif-bell-wrap") && NOTIF_OPEN_TYPE) { NOTIF_OPEN_TYPE = null; applyNotifOpenState(); }
+  if (!e.target.closest(".notif-bell-wrap") && NOTIF_OPEN) { NOTIF_OPEN = false; applyNotifOpenState(); }
 });
 async function dismissNotification(id){
   const n = NOTIF_CACHE.find(x => x.id === id);
@@ -2000,12 +1986,12 @@ async function dismissNotification(id){
   const readBy = Array.isArray(n.read_by) ? [...n.read_by] : [];
   if (!readBy.includes(CURRENT_USER.id)) readBy.push(CURRENT_USER.id);
   n.read_by = readBy;
-  renderNotifBells();
+  renderNotifBell();
   const { error } = await sb.from("notifications").update({ read_by: readBy }).eq("id", id);
   if (error) console.warn("Gagal update status notifikasi:", error.message);
 }
-async function pushNotification(type, title, message){
-  try { await sb.from("notifications").insert({ type, title, message: message || null, created_by: CURRENT_USER.id }); }
+async function pushNotification(audience, category, title, message){
+  try { await sb.from("notifications").insert({ audience, category, title, message: message || null, created_by: CURRENT_USER.id }); }
   catch(e) { console.warn("Gagal mengirim notifikasi:", e); }
 }
 
@@ -2352,7 +2338,7 @@ document.getElementById("btnSaveContent").addEventListener("click", async () => 
   else { payload.created_by = CURRENT_USER.id; ({ error } = await sb.from("content_plan").insert(payload)); }
   if (error) return toast(error.message,"error");
   toast(id ? "Job diperbarui" : "Job ditambahkan","success");
-  if (!id) pushNotification("content", "Tugas konten baru", `${title} — untuk ${nameOf(payload.assigned_to) || "tim konten"}`);
+  if (!id) pushNotification("content_creator", "content", "Tugas konten baru", `${title} — untuk ${nameOf(payload.assigned_to) || "tim konten"}`);
   closeModal("modalContent"); loadContent();
 });
 document.getElementById("btnDeleteContent").addEventListener("click", async () => {
@@ -2407,6 +2393,10 @@ document.getElementById("btnSaveProgress").addEventListener("click", async () =>
   }).eq("id", id);
   if (error) return toast(error.message,"error");
   toast("Progress berhasil diperbarui","success");
+  if (CURRENT_USER.role !== "moderator") {
+    const stageLbl = PROGRESS_STAGES.find(s => s.id === stage)?.label || stage;
+    pushNotification("moderator", "content", "Progress konten diperbarui", `${job?.title||"Job konten"} — ${CURRENT_USER.display_name} update ke tahap "${stageLbl}"`);
+  }
   closeModal("modalProgress"); loadContent();
 });
 
@@ -2750,7 +2740,7 @@ document.getElementById("btnSaveAd").addEventListener("click", async () => {
     return toast(error.message,"error");
   }
   toast(id ? "Jadwal iklan diperbarui" : "Iklan dijadwalkan","success");
-  if (!id) pushNotification("ads", "Iklan baru dijadwalkan", `${campaign_name} — ${fmtDate(ad_date)}`);
+  if (!id) pushNotification("b2b", "ads", "Iklan baru dijadwalkan", `${campaign_name} — ${fmtDate(ad_date)}`);
   closeModal("modalAd");
   AD_SELECTED_DATE = ad_date;
   loadAds();
@@ -2827,6 +2817,7 @@ document.getElementById("btnSaveLead").addEventListener("click", async () => {
   }
   if (error) return toast(error.message,"error");
   toast(id ? "Lead diperbarui" : "Lead ditambahkan ke CRM","success");
+  if (!id) pushNotification("moderator", "ads", "Lead baru masuk", `${name} — dari ${ad ? ad.campaign_name : "iklan"}, input oleh ${CURRENT_USER.display_name}`);
   closeModal("modalLead"); loadAds();
 });
 document.getElementById("btnDeleteLead").addEventListener("click", async () => {
@@ -2903,7 +2894,11 @@ document.getElementById("btnSaveDesign").addEventListener("click", async () => {
     const payload = { status: document.getElementById("dStatus").value, link_url: document.getElementById("dLink").value.trim() };
     const { error } = await sb.from("design_tasks").update(payload).eq("id", id);
     if (error) return toast(error.message,"error");
-    toast("Tugas diperbarui","success"); closeModal("modalDesign"); loadDesign(); return;
+    toast("Tugas diperbarui","success");
+    const dTask = DESIGN_CACHE.find(x => x.id === id);
+    const statusLbl = { belum:"Belum", proses:"Proses", revisi:"Revisi", selesai:"Selesai" }[payload.status] || payload.status;
+    pushNotification("moderator", "design", "Progress desain diperbarui", `${dTask?.title||"Tugas desain"} — ${CURRENT_USER.display_name} update status ke "${statusLbl}"`);
+    closeModal("modalDesign"); loadDesign(); return;
   }
   const payload = {
     title: document.getElementById("dTitle").value.trim(),
@@ -2921,7 +2916,7 @@ document.getElementById("btnSaveDesign").addEventListener("click", async () => {
   else { payload.created_by = CURRENT_USER.id; ({ error } = await sb.from("design_tasks").insert(payload)); }
   if (error) return toast(error.message,"error");
   toast(id ? "Tugas diperbarui" : "Tugas ditambahkan","success");
-  if (!id) pushNotification("design", "Tugas desain baru", `${payload.title} — untuk ${nameOf(payload.assigned_to) || "tim desain"}`);
+  if (!id) pushNotification("desain_grafis", "design", "Tugas desain baru", `${payload.title} — untuk ${nameOf(payload.assigned_to) || "tim desain"}`);
   closeModal("modalDesign"); loadDesign();
 });
 document.getElementById("btnDeleteDesign").addEventListener("click", async () => {
