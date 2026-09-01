@@ -270,6 +270,13 @@ input,select,textarea{font-family:inherit}
 .btn-danger:hover{background:rgba(226,113,107,.1); border-color:var(--red); color:#fff}
 .btn-sm{padding:7px 12px; font-size:12.3px}
 .btn-icon{padding:8px; border-radius:var(--r3); border:1px solid var(--border); background:var(--surface2); color:var(--text2); display:inline-flex; align-items:center; justify-content:center; transition:all var(--trans)}
+.btn-icon svg{width:15px; height:15px; flex-shrink:0; display:block}
+.btn-icon.wa{color:var(--green)}
+.btn-icon.wa:hover{border-color:rgba(132,195,154,.5); background:rgba(132,195,154,.1); color:var(--green)}
+.btn-icon.followup{color:var(--gold-hi)}
+.btn-icon.followup:hover{border-color:rgba(201,165,112,.5); background:rgba(201,165,112,.1); color:var(--gold-hi)}
+.btn-icon.history{color:var(--blue)}
+.btn-icon.history:hover{border-color:rgba(141,178,214,.5); background:rgba(141,178,214,.1); color:var(--blue)}
 .btn-icon:hover{color:var(--text); border-color:var(--border-hi); background:var(--surface3)}
 .btn-icon.danger:hover{color:var(--red); border-color:rgba(226,113,107,.4); background:rgba(226,113,107,.08)}
 .btn-block{width:100%}
@@ -1154,7 +1161,9 @@ tbody tr:hover{background:var(--surface2)}
       <input type="hidden" id="mId">
       <div class="field"><label>Nama</label><input class="input" id="mName"></div>
       <div class="field-2col">
-        <div class="field"><label>No. WhatsApp</label><input class="input" id="mPhone" placeholder="628..."></div>
+        <div class="field"><label>No. WhatsApp</label>
+          <div class="phone-input-row"><span class="prefix">+62</span><input id="mPhone" placeholder="812xxxxxxx" inputmode="numeric"></div>
+        </div>
         <div class="field"><label>Status</label>
           <select class="input" id="mStatus"><option value="baru">Baru</option><option value="warm">Warm</option><option value="hot">Hot</option><option value="cold">Cold</option><option value="closing">Closing</option></select>
         </div>
@@ -1508,7 +1517,8 @@ function iconTeam(){return `<svg viewBox="0 0 24 24" fill="none" stroke="current
 function iconUser(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.6"/><path d="M4 20v-.5A6.5 6.5 0 0 1 10.5 13h3A6.5 6.5 0 0 1 20 19.5v.5"/></svg>`}
 function iconTrash(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>`}
 function iconEdit(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`}
-function iconWa(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L3 20l1.02-5.4A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 9.5c.3 2.8 2.2 4.7 5 5"/></svg>`}
+function iconWa(){return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2.13c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.33 4.95L2 22l5.15-1.35a9.87 9.87 0 0 0 4.89 1.28h.01c5.46 0 9.9-4.44 9.9-9.9s-4.44-9.9-9.91-9.9Zm5.8 14.02c-.24.68-1.39 1.32-1.93 1.4-.49.08-1.11.11-1.79-.11-.41-.13-.94-.3-1.62-.6-2.85-1.23-4.71-4.13-4.85-4.32-.14-.19-1.16-1.55-1.16-2.95 0-1.41.73-2.1 1-2.38.24-.28.53-.35.7-.35.17 0 .35 0 .5.01.16 0 .38-.06.6.46.24.56.79 1.94.86 2.08.07.14.12.31.02.5-.09.19-.14.31-.28.48-.15.17-.31.38-.44.51-.14.15-.3.3-.13.59.17.28.73 1.2 1.56 1.94 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.61-.06.16-.19.68-.79.87-1.06.18-.27.36-.23.6-.14s1.55.73 1.81.86c.27.14.44.21.51.32.07.12.07.65-.17 1.33Z"/></svg>`}
+function iconFollowup(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/><path d="m8.5 12 2.2 2.2L16 9.8"/></svg>`}
 function iconCheck(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>`}
 function iconInfo(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>`}
 function iconWorklog(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3"/><rect x="9" y="1.5" width="6" height="4" rx="1"/><path d="M8 12h8M8 16h5"/></svg>`}
@@ -2263,10 +2273,10 @@ function renderCrmTable(){
       </td>
       <td data-label="">
         <div class="icon-btn-row">
-          <button class="btn-icon" data-wa="${c.id}" title="Chat WhatsApp">${iconWa()}</button>
-          <button class="btn-icon" data-followup="${c.id}" title="Catat follow up / update progress">${iconCheck()}</button>
-          <button class="btn-icon" data-history="${c.id}" title="Riwayat follow up">${iconHistory()}</button>
-          <button class="btn-icon" data-edit-customer="${c.id}" title="Edit">${iconEdit()}</button>
+          <button class="btn-icon wa" data-wa="${c.id}" title="Chat WhatsApp">${iconWa()}</button>
+          <button class="btn-icon followup" data-followup="${c.id}" title="Catat follow up / update progress">${iconFollowup()}</button>
+          <button class="btn-icon history" data-history="${c.id}" title="Riwayat follow up">${iconHistory()}</button>
+          <button class="btn-icon" data-edit-customer="${c.id}" title="Edit data pelanggan">${iconEdit()}</button>
         </div>
       </td>
     </tr>
@@ -2300,12 +2310,15 @@ async function openFollowupHistory(customerId){
 }
 
 document.getElementById("btnAddCustomer").addEventListener("click", () => openCustomerModal());
+document.getElementById("mPhone").addEventListener("input", (e) => {
+  e.target.value = e.target.value.replace(/[^0-9]/g,"");
+});
 function openCustomerModal(id){
   const c = id ? CRM_CACHE.find(x => x.id === id) : null;
   document.getElementById("modalCustomerTitle").textContent = c ? "Edit Pelanggan" : "Pelanggan Baru";
   document.getElementById("mId").value = c?.id || "";
   document.getElementById("mName").value = c?.name || "";
-  document.getElementById("mPhone").value = c?.phone || "";
+  document.getElementById("mPhone").value = c?.phone ? c.phone.replace(/^\+?62/,"").replace(/^0+/,"") : "";
   document.getElementById("mStatus").value = c?.status || "baru";
   document.getElementById("mSource").value = c?.source || "";
   document.getElementById("mNotes").value = c?.notes || "";
@@ -2314,9 +2327,10 @@ function openCustomerModal(id){
 }
 document.getElementById("btnSaveCustomer").addEventListener("click", async () => {
   const id = document.getElementById("mId").value;
+  const phoneDigits = document.getElementById("mPhone").value.replace(/[^0-9]/g,"").replace(/^0+/,"");
   const payload = {
     name: document.getElementById("mName").value.trim(),
-    phone: document.getElementById("mPhone").value.trim(),
+    phone: phoneDigits ? "+62"+phoneDigits : "",
     status: document.getElementById("mStatus").value,
     source: document.getElementById("mSource").value.trim(),
     notes: document.getElementById("mNotes").value.trim(),
@@ -2469,7 +2483,7 @@ function renderLeadsTable(ad){
       <td data-label="Input oleh">${escapeHtml(nameOf(l.created_by))}</td>
       <td data-label="">
         <div class="icon-btn-row">
-          <button class="btn-icon" data-wa-lead="${l.id}" title="Chat WA">${iconWa()}</button>
+          <button class="btn-icon wa" data-wa-lead="${l.id}" title="Chat WhatsApp">${iconWa()}</button>
           <button class="btn-icon" data-edit-lead="${l.id}" title="Edit">${iconEdit()}</button>
         </div>
       </td>
