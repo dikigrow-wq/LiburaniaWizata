@@ -504,6 +504,15 @@ tbody tr:hover{background:var(--surface2)}
 }
 .cal-tag .sw{width:4px;height:4px;border-radius:50%; background:rgba(255,255,255,.8); flex-shrink:0}
 
+.legend-row{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.legend-item{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--text2)}
+.legend-item .sw{width:8px; height:8px; border-radius:50%; flex-shrink:0}
+.sum-section{margin-bottom:22px}
+.sum-section:last-child{margin-bottom:0}
+.sum-section-label{display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700; letter-spacing:.02em; text-transform:uppercase; color:var(--text2); margin-bottom:12px}
+.sum-section-label .sw{width:8px; height:8px; border-radius:50%; flex-shrink:0}
+.sum-section-label span:last-child{font-weight:400; text-transform:none; color:var(--muted); letter-spacing:0}
+
 .type-chip-row{display:flex; flex-wrap:wrap; gap:8px}
 .type-chip{
   display:flex; flex-direction:column; align-items:center; gap:6px; width:76px; padding:12px 6px 10px;
@@ -905,43 +914,45 @@ tbody tr:hover{background:var(--surface2)}
         </div>
       </section>
 
-      <!-- ===== RINGKASAN HARIAN (moderator) ===== -->
+      <!-- ===== RINGKASAN HARIAN (moderator) — kalender gabungan ===== -->
       <section class="page" id="page-summary">
-        <div class="panel" style="margin-bottom:20px; padding:16px 20px">
+        <div class="panel" style="margin-bottom:20px; padding:20px">
           <div class="cal-toolbar">
             <div class="cal-nav">
-              <button class="cal-nav-btn" id="sumPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
-              <div class="cal-month-label" id="sumDateLabel">—</div>
-              <button class="cal-nav-btn" id="sumNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
-              <button class="cal-today-btn" id="sumToday">Hari ini</button>
+              <button class="cal-nav-btn" id="sumCalPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+              <div class="cal-month-label" id="sumCalMonthLabel">—</div>
+              <button class="cal-nav-btn" id="sumCalNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+              <button class="cal-today-btn" id="sumCalToday">Hari ini</button>
             </div>
-            <input class="input" type="date" id="sumDatePicker" style="max-width:170px">
+            <div class="legend-row">
+              <span class="legend-item"><span class="sw" style="background:var(--blue)"></span>Konten</span>
+              <span class="legend-item"><span class="sw" style="background:var(--green)"></span>Desain &amp; Video</span>
+              <span class="legend-item"><span class="sw" style="background:var(--amber)"></span>Iklan</span>
+            </div>
           </div>
-        </div>
-
-        <div class="grid-cards" id="sumStats" style="margin-bottom:20px"></div>
-
-        <div class="panel" style="margin-bottom:20px; padding:20px">
-          <div class="panel-head">
-            <h3>Konten</h3>
-            <span class="cnt" id="sumContentCount"></span>
-          </div>
-          <div class="job-list" id="sumContentList" style="margin-top:14px"></div>
-        </div>
-
-        <div class="panel" style="margin-bottom:20px; padding:20px">
-          <div class="panel-head">
-            <h3>Desain &amp; Video</h3>
-            <span class="cnt" id="sumDesignCount"></span>
-          </div>
-          <div class="job-list" id="sumDesignList" style="margin-top:14px"></div>
+          <div class="cal-grid" id="sumCalGrid"></div>
         </div>
 
         <div class="panel" style="padding:20px">
-          <div class="panel-head">
-            <h3>Iklan</h3>
+          <div class="day-panel-head">
+            <h4 id="sumDayTitle">—</h4>
+            <span class="cnt" id="sumDayCount"></span>
           </div>
-          <div class="job-list" id="sumAdBlock" style="margin-top:14px"></div>
+
+          <div class="sum-section">
+            <div class="sum-section-label"><span class="sw" style="background:var(--blue)"></span>Konten <span id="sumContentCount"></span></div>
+            <div class="job-list" id="sumContentList"></div>
+          </div>
+
+          <div class="sum-section">
+            <div class="sum-section-label"><span class="sw" style="background:var(--green)"></span>Desain &amp; Video <span id="sumDesignCount"></span></div>
+            <div class="job-list" id="sumDesignList"></div>
+          </div>
+
+          <div class="sum-section">
+            <div class="sum-section-label"><span class="sw" style="background:var(--amber)"></span>Iklan</div>
+            <div class="job-list" id="sumAdBlock"></div>
+          </div>
         </div>
       </section>
 
@@ -2373,33 +2384,81 @@ function fmtDate(d){
 }
 
 /* ============================================================
-   RINGKASAN HARIAN (moderator) — gabung konten + desain + iklan
+   RINGKASAN HARIAN (moderator) — kalender gabungan konten + desain + iklan
    ============================================================ */
+let SUMMARY_MONTH = new Date(); SUMMARY_MONTH.setDate(1);
 let SUMMARY_DATE = todayStr();
 
 async function loadSummaryPage(){
-  document.getElementById("sumDatePicker").value = SUMMARY_DATE;
   await Promise.all([loadContent(), loadDesign(), loadAds()]);
-  renderSummaryPage();
+  renderSummaryCalendar();
+  renderSummaryDayDetail();
 }
 
 function designOnDate(dateStr){ return DESIGN_CACHE.filter(d => d.deadline === dateStr); }
 
-function renderSummaryPage(){
-  document.getElementById("sumDateLabel").textContent = formatFullDate(SUMMARY_DATE);
-  document.getElementById("sumDatePicker").value = SUMMARY_DATE;
+function combinedTagsOnDate(dateStr){
+  const tags = [];
+  jobsOnDate(dateStr).forEach(j => tags.push({
+    color:"var(--blue)", label: brandShort(j.brand),
+    title: `${j.title} — Konten (${brandLabel(j.brand)})`,
+  }));
+  designOnDate(dateStr).forEach(d => tags.push({
+    color:"var(--green)", label: brandShort(d.brand),
+    title: `${d.title} — Desain & Video (${brandLabel(d.brand)})`,
+  }));
+  const ad = adOnDate(dateStr);
+  if (ad) tags.push({ color:"var(--amber)", label:"Iklan", title:`${ad.campaign_name} — Iklan` });
+  return tags;
+}
 
+function renderSummaryCalendar(){
+  const y = SUMMARY_MONTH.getFullYear(), m = SUMMARY_MONTH.getMonth();
+  document.getElementById("sumCalMonthLabel").textContent = SUMMARY_MONTH.toLocaleDateString("id-ID",{month:"long",year:"numeric"});
+  const first = new Date(y,m,1);
+  const startOffset = (first.getDay()+6)%7;
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const cells = [];
+  for (let i=0;i<startOffset;i++) cells.push({ date:new Date(y,m,1-(startOffset-i)), muted:true });
+  for (let d=1; d<=daysInMonth; d++) cells.push({ date:new Date(y,m,d), muted:false });
+  const rem = (7 - (cells.length % 7)) % 7;
+  for (let i=1;i<=rem;i++) cells.push({ date:new Date(y,m,daysInMonth+i), muted:true });
+
+  const dow = ["Sen","Sel","Rab","Kam","Jum","Sab","Min"];
+  let html = dow.map(d => `<div class="cal-dow">${d}</div>`).join("");
+  html += cells.map(cell => {
+    const dateStr = ymd(cell.date);
+    const tags = combinedTagsOnDate(dateStr);
+    const shown = tags.slice(0,3).map(t => `<span class="cal-tag" style="background:${t.color}" title="${escapeHtml(t.title)}"><span class="sw"></span>${escapeHtml(t.label)}</span>`).join("");
+    const more = tags.length > 3 ? `<span class="more">+${tags.length-3} lagi</span>` : "";
+    return `<div class="cal-day ${cell.muted?"muted":""} ${dateStr===todayStr()?"is-today":""} ${dateStr===SUMMARY_DATE?"selected":""}" data-date="${dateStr}">
+      <div class="num">${cell.date.getDate()}</div>
+      <div class="tags">${shown}${more}</div>
+    </div>`;
+  }).join("");
+  const grid = document.getElementById("sumCalGrid");
+  grid.innerHTML = html;
+  grid.querySelectorAll(".cal-day:not(.muted)").forEach(el => el.addEventListener("click", () => {
+    SUMMARY_DATE = el.dataset.date;
+    renderSummaryCalendar(); renderSummaryDayDetail();
+  }));
+}
+document.getElementById("sumCalPrev").addEventListener("click", () => { SUMMARY_MONTH.setMonth(SUMMARY_MONTH.getMonth()-1); renderSummaryCalendar(); });
+document.getElementById("sumCalNext").addEventListener("click", () => { SUMMARY_MONTH.setMonth(SUMMARY_MONTH.getMonth()+1); renderSummaryCalendar(); });
+document.getElementById("sumCalToday").addEventListener("click", () => {
+  SUMMARY_MONTH = new Date(); SUMMARY_MONTH.setDate(1); SUMMARY_DATE = todayStr();
+  renderSummaryCalendar(); renderSummaryDayDetail();
+});
+
+function renderSummaryDayDetail(){
+  document.getElementById("sumDayTitle").textContent = formatFullDate(SUMMARY_DATE);
   const contentList = jobsOnDate(SUMMARY_DATE);
   const designList = designOnDate(SUMMARY_DATE);
   const ad = adOnDate(SUMMARY_DATE);
+  const total = contentList.length + designList.length + (ad ? 1 : 0);
+  document.getElementById("sumDayCount").textContent = total ? `${total} item` : "";
 
-  document.getElementById("sumStats").innerHTML = `
-    <div class="stat-card"><div class="label">Konten</div><div class="value gold">${contentList.length}</div></div>
-    <div class="stat-card"><div class="label">Desain &amp; Video</div><div class="value gold">${designList.length}</div></div>
-    <div class="stat-card"><div class="label">Iklan</div><div class="value gold">${ad ? 1 : 0}</div></div>
-  `;
-
-  document.getElementById("sumContentCount").textContent = contentList.length ? `${contentList.length} job` : "";
+  document.getElementById("sumContentCount").textContent = contentList.length ? `(${contentList.length})` : "(0)";
   const cWrap = document.getElementById("sumContentList");
   cWrap.innerHTML = contentList.length ? contentList.map(j => `
     <div class="job-card" data-id="${j.id}">
@@ -2418,7 +2477,7 @@ function renderSummaryPage(){
   `).join("") : `<div class="job-empty">Tidak ada job konten di tanggal ini.</div>`;
   cWrap.querySelectorAll(".job-card").forEach(el => el.addEventListener("click", () => openContentModal(el.dataset.id)));
 
-  document.getElementById("sumDesignCount").textContent = designList.length ? `${designList.length} tugas` : "";
+  document.getElementById("sumDesignCount").textContent = designList.length ? `(${designList.length})` : "(0)";
   const dWrap = document.getElementById("sumDesignList");
   dWrap.innerHTML = designList.length ? designList.map(d => `
     <div class="job-card" data-id="${d.id}">
@@ -2453,20 +2512,6 @@ function renderSummaryPage(){
     aWrap.innerHTML = `<div class="job-empty">Tidak ada iklan dijadwalkan di tanggal ini.</div>`;
   }
 }
-
-document.getElementById("sumPrev").addEventListener("click", () => {
-  const d = new Date(SUMMARY_DATE+"T00:00:00"); d.setDate(d.getDate()-1);
-  SUMMARY_DATE = ymd(d); renderSummaryPage();
-});
-document.getElementById("sumNext").addEventListener("click", () => {
-  const d = new Date(SUMMARY_DATE+"T00:00:00"); d.setDate(d.getDate()+1);
-  SUMMARY_DATE = ymd(d); renderSummaryPage();
-});
-document.getElementById("sumToday").addEventListener("click", () => { SUMMARY_DATE = todayStr(); renderSummaryPage(); });
-document.getElementById("sumDatePicker").addEventListener("change", (e) => {
-  if (!e.target.value) return;
-  SUMMARY_DATE = e.target.value; renderSummaryPage();
-});
 
 /* ============================================================
    CONTENT PLAN — KALENDER BULANAN & HARIAN
