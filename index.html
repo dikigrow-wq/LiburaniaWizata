@@ -369,6 +369,18 @@ input,select,textarea{font-family:inherit}
 .btn-block{width:100%}
 .export-group{display:inline-flex; align-items:center; gap:6px}
 
+.field-label-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
+.field-label-row label{margin-bottom:0}
+.copy-btn{
+  display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:99px;
+  border:1px solid var(--border); background:var(--surface2); color:var(--text2);
+  font-size:11px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:all var(--trans);
+  white-space:nowrap; flex-shrink:0;
+}
+.copy-btn svg{width:12px; height:12px; flex-shrink:0}
+.copy-btn:hover{border-color:var(--gold); color:var(--gold-hi); background:rgba(201,165,112,.1)}
+.copy-btn.copied{border-color:rgba(132,195,154,.5); color:var(--green); background:rgba(132,195,154,.1)}
+
 .input, select.input, textarea.input{
   width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--r3);
   color:var(--text); padding:9px 12px; font-size:13.5px; outline:none; transition:border-color var(--trans);
@@ -560,6 +572,8 @@ tbody tr:hover{background:var(--surface2)}
 .chip-toggle input{display:none}
 
 .type-pill{display:inline-flex; align-items:center; font-size:11.5px; padding:4px 10px; border-radius:20px; background:rgba(201,165,112,.1); color:var(--gold-hi); border:1px solid var(--border)}
+.time-pill{display:inline-flex; align-items:center; gap:4px; font-size:11.5px; padding:4px 10px; border-radius:20px; background:var(--surface2); color:var(--text2); border:1px solid var(--border)}
+.time-pill svg{width:11px; height:11px; flex-shrink:0}
 
 .stage-track{display:flex; align-items:center; gap:0; margin:6px 0 4px}
 .stage-step{flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; position:relative}
@@ -1217,8 +1231,28 @@ tbody tr:hover{background:var(--surface2)}
       <div class="field"><label>Ditugaskan ke</label><select class="input" id="cAssignee"></select></div>
 
       <div class="modal-section-label">Materi &amp; progres</div>
-      <div class="field"><label>Naskah / script &amp; materi</label><textarea class="input" id="cScript" placeholder="Konsep, hook, voice over, referensi..."></textarea></div>
-      <div class="field"><label>Tahap saat ini</label><select class="input" id="cStage"></select></div>
+      <div class="field">
+        <div class="field-label-row"><label>Naskah / Script &amp; materi</label>
+          <button type="button" class="copy-btn" data-copy="cScript" title="Salin script"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Salin</span></button>
+        </div>
+        <textarea class="input" id="cScript" placeholder="Konsep, hook, voice over, referensi..."></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label-row"><label>Caption</label>
+          <button type="button" class="copy-btn" data-copy="cCaption" title="Salin caption"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Salin</span></button>
+        </div>
+        <textarea class="input" id="cCaption" placeholder="Teks caption siap posting..."></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label-row"><label>Hashtag</label>
+          <button type="button" class="copy-btn" data-copy="cHashtag" title="Salin hashtag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Salin</span></button>
+        </div>
+        <textarea class="input" id="cHashtag" placeholder="#confetti #bedsheet #promo ..." style="min-height:52px"></textarea>
+      </div>
+      <div class="field-2col">
+        <div class="field"><label>Jam Upload</label><input class="input" type="time" id="cUploadTime"></div>
+        <div class="field"><label>Tahap saat ini</label><select class="input" id="cStage"></select></div>
+      </div>
       <div class="field" id="cLinksField" hidden>
         <label>Link upload per platform</label>
         <div id="cLinksWrap"></div>
@@ -1245,7 +1279,25 @@ tbody tr:hover{background:var(--surface2)}
         <div class="chip-toggle-row" id="pgPlatformView"></div>
       </div>
       <div class="field"><label>Jenis konten</label><div class="readonly-box" id="pgTypeView"></div></div>
-      <div class="field"><label>Naskah / script &amp; materi</label><div class="readonly-box" id="pgScriptView"></div></div>
+      <div class="field" id="pgUploadTimeField"><label>Jam Upload</label><div class="readonly-box" id="pgUploadTimeView"></div></div>
+      <div class="field">
+        <div class="field-label-row"><label>Naskah / Script &amp; materi</label>
+          <button type="button" class="copy-btn" data-copy="pgScriptView" title="Salin script"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Salin</span></button>
+        </div>
+        <div class="readonly-box" id="pgScriptView"></div>
+      </div>
+      <div class="field">
+        <div class="field-label-row"><label>Caption</label>
+          <button type="button" class="copy-btn" data-copy="pgCaptionView" title="Salin caption"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Salin</span></button>
+        </div>
+        <div class="readonly-box" id="pgCaptionView"></div>
+      </div>
+      <div class="field">
+        <div class="field-label-row"><label>Hashtag</label>
+          <button type="button" class="copy-btn" data-copy="pgHashtagView" title="Salin hashtag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Salin</span></button>
+        </div>
+        <div class="readonly-box" id="pgHashtagView"></div>
+      </div>
       <div class="field">
         <label>Progress</label>
         <div class="stage-track" id="pgStageTrack"></div>
@@ -1377,8 +1429,28 @@ tbody tr:hover{background:var(--surface2)}
         </div>
         <div class="field"><label>Ditugaskan ke</label><select class="input" id="dAssignee"></select></div>
       </div>
-      <div class="field"><label>Brief</label><textarea class="input" id="dBrief"></textarea></div>
-      <div class="field"><label>Link hasil (opsional)</label><input class="input" id="dLink" placeholder="https://..."></div>
+      <div class="field">
+        <div class="field-label-row"><label>Brief</label>
+          <button type="button" class="copy-btn" data-copy="dBrief" title="Salin brief"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Salin</span></button>
+        </div>
+        <textarea class="input" id="dBrief"></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label-row"><label>Caption</label>
+          <button type="button" class="copy-btn" data-copy="dCaption" title="Salin caption"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Salin</span></button>
+        </div>
+        <textarea class="input" id="dCaption" placeholder="Teks caption siap posting..."></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label-row"><label>Hashtag</label>
+          <button type="button" class="copy-btn" data-copy="dHashtag" title="Salin hashtag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Salin</span></button>
+        </div>
+        <textarea class="input" id="dHashtag" placeholder="#confetti #bedsheet #promo ..." style="min-height:52px"></textarea>
+      </div>
+      <div class="field-2col">
+        <div class="field"><label>Jam Upload</label><input class="input" type="time" id="dUploadTime"></div>
+        <div class="field"><label>Link hasil (opsional)</label><input class="input" id="dLink" placeholder="https://..."></div>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost btn-sm" id="btnDeleteDesign" style="margin-right:auto;display:none">Hapus</button>
@@ -1654,6 +1726,44 @@ function iconTypeSinglePost(){return `<svg viewBox="0 0 24 24" fill="none" strok
 function iconTypeStory(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><circle cx="12" cy="7.2" r="2"/></svg>`}
 function iconTypeVideoEdit(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 5.3 4h3L6 8.5"/><path d="M9.7 8.5 12 4h3l-2.3 4.5"/><path d="M16.3 8.5 18 5h1a1 1 0 0 1 1 1v2.5"/><rect x="3" y="8.5" width="18" height="11.5" rx="2"/><path d="M10.3 12.6v3.8l3.4-1.9z"/></svg>`}
 function iconLinkOut(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>`}
+function iconClock(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`}
+function iconCopy(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`}
+function iconCheck(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`}
+function copyBtn(targetId, label){ return `<button type="button" class="copy-btn" data-copy="${targetId}" title="Salin ${label}">${iconCopy()}<span>Salin</span></button>`; }
+function timePill(t){ if(!t) return ""; return `<span class="time-pill">${iconClock()}${escapeHtml(String(t).slice(0,5))} WIB</span>`; }
+function fieldText(el){
+  if (!el) return "";
+  const tag = (el.tagName || "").toUpperCase();
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return el.value || "";
+  return el.textContent || "";
+}
+async function copyFieldValue(targetId, btn){
+  const el = document.getElementById(targetId);
+  const text = fieldText(el);
+  if (!text.trim()) { toast("Belum ada teks untuk disalin","error"); return; }
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      document.execCommand("copy"); document.body.removeChild(ta);
+    }
+  } catch (e) { toast("Gagal menyalin","error"); return; }
+  toast("Tersalin ke clipboard","success");
+  if (btn) {
+    const orig = btn.innerHTML;
+    btn.classList.add("copied");
+    btn.innerHTML = `${iconCheck()}<span>Tersalin</span>`;
+    setTimeout(() => { btn.classList.remove("copied"); btn.innerHTML = orig; }, 1400);
+  }
+}
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".copy-btn");
+  if (!btn) return;
+  copyFieldValue(btn.dataset.copy, btn);
+});
 
 function iconWa(){return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2.13c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.33 4.95L2 22l5.15-1.35a9.87 9.87 0 0 0 4.89 1.28h.01c5.46 0 9.9-4.44 9.9-9.9s-4.44-9.9-9.91-9.9Zm5.8 14.02c-.24.68-1.39 1.32-1.93 1.4-.49.08-1.11.11-1.79-.11-.41-.13-.94-.3-1.62-.6-2.85-1.23-4.71-4.13-4.85-4.32-.14-.19-1.16-1.55-1.16-2.95 0-1.41.73-2.1 1-2.38.24-.28.53-.35.7-.35.17 0 .35 0 .5.01.16 0 .38-.06.6.46.24.56.79 1.94.86 2.08.07.14.12.31.02.5-.09.19-.14.31-.28.48-.15.17-.31.38-.44.51-.14.15-.3.3-.13.59.17.28.73 1.2 1.56 1.94 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.61-.06.16-.19.68-.79.87-1.06.18-.27.36-.23.6-.14s1.55.73 1.81.86c.27.14.44.21.51.32.07.12.07.65-.17 1.33Z"/></svg>`}
 function iconFollowup(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/><path d="m8.5 12 2.2 2.2L16 9.8"/></svg>`}
@@ -2324,6 +2434,7 @@ function renderDayList(){
         <div class="jc-meta">
           ${brandPill(j.brand)}
           <span class="type-pill">${escapeHtml(j.content_type_name || "—")}</span>
+          ${timePill(j.upload_time)}
           <div class="platform-row">${(j.platforms||[]).map(platformIcon).join("")}</div>
           ${CURRENT_USER.role==="moderator" ? `<span class="badge badge-muted">${escapeHtml(nameOf(j.assigned_to))}</span>` : ""}
         </div>
@@ -2422,6 +2533,9 @@ function openContentModal(id, prefillDate){
   document.getElementById("cAssignee").innerHTML = teamOptions("content_creator");
   document.getElementById("cAssignee").value = c?.assigned_to || "";
   document.getElementById("cScript").value = c?.script_text || "";
+  document.getElementById("cCaption").value = c?.caption || "";
+  document.getElementById("cHashtag").value = c?.hashtags || "";
+  document.getElementById("cUploadTime").value = c?.upload_time ? String(c.upload_time).slice(0,5) : "";
   document.getElementById("cStage").innerHTML = PROGRESS_STAGES.map(s => `<option value="${s.id}">${s.label}</option>`).join("");
   document.getElementById("cStage").value = c?.progress_stage || "breakdown";
   CONTENT_LINKS_DRAFT = Object.assign({}, c?.upload_links || {});
@@ -2446,6 +2560,9 @@ document.getElementById("btnSaveContent").addEventListener("click", async () => 
     content_type_name: document.getElementById("cTypeName").value || null,
     platforms,
     script_text: document.getElementById("cScript").value.trim(),
+    caption: document.getElementById("cCaption").value.trim(),
+    hashtags: document.getElementById("cHashtag").value.trim(),
+    upload_time: document.getElementById("cUploadTime").value || null,
     assigned_to: document.getElementById("cAssignee").value || null,
     progress_stage: stage,
     upload_links: links,
@@ -2478,7 +2595,10 @@ function openProgressModal(id){
   document.getElementById("pgBrandField").innerHTML = job.brand ? brandPill(job.brand) : "";
   document.getElementById("pgPlatformView").innerHTML = (job.platforms||[]).map(p => `<span class="chip-toggle on">${platformIcon(p)} ${PLATFORM_META[p].label}</span>`).join("");
   document.getElementById("pgTypeView").textContent = job.content_type_name || "—";
+  document.getElementById("pgUploadTimeView").textContent = job.upload_time ? String(job.upload_time).slice(0,5)+" WIB" : "Belum dijadwalkan";
   document.getElementById("pgScriptView").textContent = job.script_text || "Belum ada naskah/materi dari moderator.";
+  document.getElementById("pgCaptionView").textContent = job.caption || "Belum ada caption dari moderator.";
+  document.getElementById("pgHashtagView").textContent = job.hashtags || "Belum ada hashtag dari moderator.";
   document.getElementById("pgStage").innerHTML = PROGRESS_STAGES.map(s => `<option value="${s.id}">${s.label}</option>`).join("");
   document.getElementById("pgStage").value = job.progress_stage || "breakdown";
   document.getElementById("pgStage").onchange = () => renderStageTrack(document.getElementById("pgStage").value);
@@ -2981,6 +3101,7 @@ function renderDesignKanban(){
               <span class="badge badge-gold">${taskTypeLabel(d.task_type)}</span>
             </div>
             <div class="meta"><span class="date">${d.deadline ? "Deadline "+fmtDate(d.deadline) : "Tanpa deadline"}</span></div>
+            ${d.upload_time ? `<div style="margin-top:6px">${timePill(d.upload_time)}</div>` : ``}
             ${d.link_url ? `<a class="result-link" href="${escapeHtml(d.link_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${iconLinkOut()}Lihat Hasil</a>` : ``}
           </div>
         `).join("") : `<div style="color:var(--muted); font-size:12.5px; text-align:center; padding:20px 0">Kosong</div>`}
@@ -3001,12 +3122,15 @@ function openDesignModal(id){
   document.getElementById("dAssignee").innerHTML = teamOptions("desain_grafis");
   document.getElementById("dAssignee").value = d?.assigned_to || "";
   document.getElementById("dBrief").value = d?.brief || "";
+  document.getElementById("dCaption").value = d?.caption || "";
+  document.getElementById("dHashtag").value = d?.hashtags || "";
+  document.getElementById("dUploadTime").value = d?.upload_time ? String(d.upload_time).slice(0,5) : "";
   document.getElementById("dLink").value = d?.link_url || "";
   document.getElementById("btnDeleteDesign").style.display = (d && CURRENT_USER.role==="moderator") ? "inline-flex" : "none";
   const lockForDesainer = CURRENT_USER.role === "desain_grafis";
   renderBrandChips("dBrandChips", d?.brand || "liburania", lockForDesainer);
   renderTypeChips(d?.task_type || "single_post", lockForDesainer);
-  ["dTitle","dDeadline","dAssignee","dBrief"].forEach(id2 => document.getElementById(id2).disabled = lockForDesainer);
+  ["dTitle","dDeadline","dAssignee","dBrief","dCaption","dHashtag","dUploadTime"].forEach(id2 => document.getElementById(id2).disabled = lockForDesainer);
   openModal("modalDesign");
 }
 document.getElementById("btnSaveDesign").addEventListener("click", async () => {
@@ -3029,6 +3153,9 @@ document.getElementById("btnSaveDesign").addEventListener("click", async () => {
     status: document.getElementById("dStatus").value,
     assigned_to: document.getElementById("dAssignee").value || null,
     brief: document.getElementById("dBrief").value.trim(),
+    caption: document.getElementById("dCaption").value.trim(),
+    hashtags: document.getElementById("dHashtag").value.trim(),
+    upload_time: document.getElementById("dUploadTime").value || null,
     link_url: document.getElementById("dLink").value.trim(),
   };
   if (!payload.title) return toast("Judul tugas wajib diisi","error");
