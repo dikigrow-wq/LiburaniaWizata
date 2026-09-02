@@ -905,6 +905,46 @@ tbody tr:hover{background:var(--surface2)}
         </div>
       </section>
 
+      <!-- ===== RINGKASAN HARIAN (moderator) ===== -->
+      <section class="page" id="page-summary">
+        <div class="panel" style="margin-bottom:20px; padding:16px 20px">
+          <div class="cal-toolbar">
+            <div class="cal-nav">
+              <button class="cal-nav-btn" id="sumPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+              <div class="cal-month-label" id="sumDateLabel">—</div>
+              <button class="cal-nav-btn" id="sumNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+              <button class="cal-today-btn" id="sumToday">Hari ini</button>
+            </div>
+            <input class="input" type="date" id="sumDatePicker" style="max-width:170px">
+          </div>
+        </div>
+
+        <div class="grid-cards" id="sumStats" style="margin-bottom:20px"></div>
+
+        <div class="panel" style="margin-bottom:20px; padding:20px">
+          <div class="panel-head">
+            <h3>Konten</h3>
+            <span class="cnt" id="sumContentCount"></span>
+          </div>
+          <div class="job-list" id="sumContentList" style="margin-top:14px"></div>
+        </div>
+
+        <div class="panel" style="margin-bottom:20px; padding:20px">
+          <div class="panel-head">
+            <h3>Desain &amp; Video</h3>
+            <span class="cnt" id="sumDesignCount"></span>
+          </div>
+          <div class="job-list" id="sumDesignList" style="margin-top:14px"></div>
+        </div>
+
+        <div class="panel" style="padding:20px">
+          <div class="panel-head">
+            <h3>Iklan</h3>
+          </div>
+          <div class="job-list" id="sumAdBlock" style="margin-top:14px"></div>
+        </div>
+      </section>
+
       <!-- ===== CONTENT PLAN — KALENDER ===== -->
       <section class="page" id="page-content">
         <div class="grid-cards" id="cpStats"></div>
@@ -1661,6 +1701,7 @@ const ROLE_LABEL = { moderator: "Moderator", content_creator: "Content Creator",
 const NAV_BY_ROLE = {
   moderator: [
     { id: "dashboard", label: "Dashboard", icon: iconGrid() },
+    { id: "summary",   label: "Ringkasan Harian", icon: iconSummary() },
     { id: "content",   label: "Rencana Konten", icon: iconCalendar() },
     { id: "crm",       label: "CRM Pelanggan", icon: iconUsers() },
     { id: "ads",       label: "Iklan & Leads", icon: iconAd() },
@@ -1693,6 +1734,7 @@ const NAV_BY_ROLE = {
 
 const PAGE_META = {
   dashboard: { title: "Dashboard", sub: "Ringkasan kerja hari ini" },
+  summary:   { title: "Ringkasan Harian", sub: "Semua konten, desain & iklan dalam satu tanggal — tidak perlu buka satu-satu" },
   content:   { title: "Rencana Konten", sub: "Kalender & tugas konten tim" },
   crm:       { title: "CRM Pelanggan", sub: "Database pelanggan & follow up" },
   ads:       { title: "Iklan & Leads", sub: "Jadwal iklan per tanggal & input leads B2B" },
@@ -1713,6 +1755,7 @@ function iconUsers(){return `<svg viewBox="0 0 24 24" fill="none" stroke="curren
 function iconLayers(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg>`}
 function iconTeam(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="8" r="2.6"/><path d="M3 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><path d="M17 14.2a4 4 0 0 1 4 4V20"/></svg>`}
 function iconUser(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.6"/><path d="M4 20v-.5A6.5 6.5 0 0 1 10.5 13h3A6.5 6.5 0 0 1 20 19.5v.5"/></svg>`}
+function iconSummary(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="2.2"/><path d="M8 8h8M8 12.5h8M8 17h5"/></svg>`}
 function iconTrash(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>`}
 function iconEdit(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`}
 function iconBell(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 6.5-2.5 8.2-2.5 8.2h17S18 14.5 18 8Z"/><path d="M13.7 20.5a2 2 0 0 1-3.4 0"/></svg>`}
@@ -2050,6 +2093,7 @@ function goPage(id){
   document.getElementById("sidebarBackdrop").classList.remove("open");
 
   if (id === "dashboard") loadDashboard();
+  if (id === "summary") loadSummaryPage();
   if (id === "content") loadContent();
   if (id === "crm") loadCrm();
   if (id === "ads") loadAds();
@@ -2327,6 +2371,102 @@ function fmtDate(d){
   if (!d) return "—";
   return new Date(d).toLocaleDateString("id-ID",{ day:"numeric", month:"short", year:"numeric" });
 }
+
+/* ============================================================
+   RINGKASAN HARIAN (moderator) — gabung konten + desain + iklan
+   ============================================================ */
+let SUMMARY_DATE = todayStr();
+
+async function loadSummaryPage(){
+  document.getElementById("sumDatePicker").value = SUMMARY_DATE;
+  await Promise.all([loadContent(), loadDesign(), loadAds()]);
+  renderSummaryPage();
+}
+
+function designOnDate(dateStr){ return DESIGN_CACHE.filter(d => d.deadline === dateStr); }
+
+function renderSummaryPage(){
+  document.getElementById("sumDateLabel").textContent = formatFullDate(SUMMARY_DATE);
+  document.getElementById("sumDatePicker").value = SUMMARY_DATE;
+
+  const contentList = jobsOnDate(SUMMARY_DATE);
+  const designList = designOnDate(SUMMARY_DATE);
+  const ad = adOnDate(SUMMARY_DATE);
+
+  document.getElementById("sumStats").innerHTML = `
+    <div class="stat-card"><div class="label">Konten</div><div class="value gold">${contentList.length}</div></div>
+    <div class="stat-card"><div class="label">Desain &amp; Video</div><div class="value gold">${designList.length}</div></div>
+    <div class="stat-card"><div class="label">Iklan</div><div class="value gold">${ad ? 1 : 0}</div></div>
+  `;
+
+  document.getElementById("sumContentCount").textContent = contentList.length ? `${contentList.length} job` : "";
+  const cWrap = document.getElementById("sumContentList");
+  cWrap.innerHTML = contentList.length ? contentList.map(j => `
+    <div class="job-card" data-id="${j.id}">
+      <div class="jc-main">
+        <div class="jc-title">${escapeHtml(j.title)}</div>
+        <div class="jc-meta">
+          ${brandPill(j.brand)}
+          <span class="type-pill">${escapeHtml(j.content_type_name || "—")}</span>
+          ${timePill(j.upload_time)}
+          <div class="platform-row">${(j.platforms||[]).map(platformIcon).join("")}</div>
+          <span class="badge badge-muted">${escapeHtml(nameOf(j.assigned_to))}</span>
+        </div>
+      </div>
+      ${stageBadge(j.progress_stage)}
+    </div>
+  `).join("") : `<div class="job-empty">Tidak ada job konten di tanggal ini.</div>`;
+  cWrap.querySelectorAll(".job-card").forEach(el => el.addEventListener("click", () => openContentModal(el.dataset.id)));
+
+  document.getElementById("sumDesignCount").textContent = designList.length ? `${designList.length} tugas` : "";
+  const dWrap = document.getElementById("sumDesignList");
+  dWrap.innerHTML = designList.length ? designList.map(d => `
+    <div class="job-card" data-id="${d.id}">
+      <div class="jc-main">
+        <div class="jc-title">${escapeHtml(d.title)}</div>
+        <div class="jc-meta">
+          ${brandPill(d.brand)}
+          <span class="type-pill">${taskTypeLabel(d.task_type)}</span>
+          ${timePill(d.upload_time)}
+          <span class="badge badge-muted">${escapeHtml(nameOf(d.assigned_to))}</span>
+        </div>
+      </div>
+      <span class="badge badge-gold">${DESIGN_COLS.find(c=>c.id===d.status)?.label || d.status}</span>
+    </div>
+  `).join("") : `<div class="job-empty">Tidak ada tugas desain/video di tanggal ini.</div>`;
+  dWrap.querySelectorAll(".job-card").forEach(el => el.addEventListener("click", () => openDesignModal(el.dataset.id)));
+
+  const aWrap = document.getElementById("sumAdBlock");
+  if (ad) {
+    aWrap.innerHTML = `
+      <div class="job-card" data-id="${ad.id}">
+        <div class="jc-main">
+          <div class="jc-title">${escapeHtml(ad.campaign_name)}</div>
+          <div class="jc-meta">
+            <div class="platform-row">${(ad.platforms||[]).map(platformIcon).join("")}</div>
+            ${ad.notes ? `<span class="badge badge-muted">${escapeHtml(ad.notes)}</span>` : ""}
+          </div>
+        </div>
+      </div>`;
+    aWrap.querySelector(".job-card").addEventListener("click", () => openAdModal(ad.id));
+  } else {
+    aWrap.innerHTML = `<div class="job-empty">Tidak ada iklan dijadwalkan di tanggal ini.</div>`;
+  }
+}
+
+document.getElementById("sumPrev").addEventListener("click", () => {
+  const d = new Date(SUMMARY_DATE+"T00:00:00"); d.setDate(d.getDate()-1);
+  SUMMARY_DATE = ymd(d); renderSummaryPage();
+});
+document.getElementById("sumNext").addEventListener("click", () => {
+  const d = new Date(SUMMARY_DATE+"T00:00:00"); d.setDate(d.getDate()+1);
+  SUMMARY_DATE = ymd(d); renderSummaryPage();
+});
+document.getElementById("sumToday").addEventListener("click", () => { SUMMARY_DATE = todayStr(); renderSummaryPage(); });
+document.getElementById("sumDatePicker").addEventListener("change", (e) => {
+  if (!e.target.value) return;
+  SUMMARY_DATE = e.target.value; renderSummaryPage();
+});
 
 /* ============================================================
    CONTENT PLAN — KALENDER BULANAN & HARIAN
@@ -3773,6 +3913,7 @@ function scheduleRealtimeRefresh(pageKey){
     flashLiveIndicator();
     if (currentPage === pageKey) reloadCurrentPageData(pageKey);
     if (currentPage === "dashboard") loadDashboard();
+    if (currentPage === "summary" && ["content","design","ads"].includes(pageKey)) loadSummaryPage();
   }, 350);
 }
 function reloadCurrentPageData(id){
