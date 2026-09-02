@@ -185,6 +185,13 @@ input,select,textarea{font-family:inherit}
 .nav-item svg{width:16px;height:16px; flex-shrink:0}
 .nav-item:hover{background:var(--surface2); color:var(--text)}
 .nav-item.active{background:var(--surface3); color:var(--gold-hi); border:1px solid var(--border)}
+.nav-count-badge{
+  margin-left:auto; min-width:18px; height:18px; padding:0 5px; border-radius:99px;
+  background:var(--red); color:#fff; font-size:10px; font-weight:700; font-family:'Inter',sans-serif;
+  display:flex; align-items:center; justify-content:center; line-height:1; flex-shrink:0;
+  box-shadow:0 1px 3px rgba(226,113,107,.35);
+}
+.nav-count-badge:empty{display:none}
 
 .sidebar-foot{margin-top:auto; padding-top:14px; border-top:1px solid var(--border)}
 .user-chip{
@@ -499,6 +506,14 @@ tbody tr:hover{background:var(--surface2)}
 .type-chip svg{width:16px;height:16px}
 .type-chip .lbl{font-size:10.3px; font-weight:600; color:var(--text2); line-height:1.25}
 .type-chip.on .lbl{color:var(--text)}
+.kcard .result-link{
+  display:flex; align-items:center; justify-content:center; gap:6px; margin-top:2px;
+  padding:8px 10px; border-radius:9px; text-decoration:none; font-size:11.3px; font-weight:700;
+  letter-spacing:.01em; color:var(--gold-hi); background:linear-gradient(135deg, rgba(224,180,108,.18), rgba(224,180,108,.05));
+  border:1px solid rgba(224,180,108,.38); transition:all var(--trans);
+}
+.kcard .result-link:hover{background:rgba(224,180,108,.26); border-color:var(--gold); transform:translateY(-1px); box-shadow:0 3px 10px rgba(224,180,108,.18)}
+.kcard .result-link svg{width:13px; height:13px; flex-shrink:0}
 @media (max-width:760px){
   .type-chip{width:70px; padding:10px 4px 9px}
   .type-chip .ic{width:28px; height:28px}
@@ -1638,6 +1653,7 @@ function iconTypeCarousel(){return `<svg viewBox="0 0 24 24" fill="none" stroke=
 function iconTypeSinglePost(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9.3" cy="9.3" r="1.4"/><path d="m20 15-4.5-4.5L7 19"/></svg>`}
 function iconTypeStory(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><circle cx="12" cy="7.2" r="2"/></svg>`}
 function iconTypeVideoEdit(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 5.3 4h3L6 8.5"/><path d="M9.7 8.5 12 4h3l-2.3 4.5"/><path d="M16.3 8.5 18 5h1a1 1 0 0 1 1 1v2.5"/><rect x="3" y="8.5" width="18" height="11.5" rx="2"/><path d="M10.3 12.6v3.8l3.4-1.9z"/></svg>`}
+function iconLinkOut(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>`}
 
 function iconWa(){return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2.13c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.33 4.95L2 22l5.15-1.35a9.87 9.87 0 0 0 4.89 1.28h.01c5.46 0 9.9-4.44 9.9-9.9s-4.44-9.9-9.91-9.9Zm5.8 14.02c-.24.68-1.39 1.32-1.93 1.4-.49.08-1.11.11-1.79-.11-.41-.13-.94-.3-1.62-.6-2.85-1.23-4.71-4.13-4.85-4.32-.14-.19-1.16-1.55-1.16-2.95 0-1.41.73-2.1 1-2.38.24-.28.53-.35.7-.35.17 0 .35 0 .5.01.16 0 .38-.06.6.46.24.56.79 1.94.86 2.08.07.14.12.31.02.5-.09.19-.14.31-.28.48-.15.17-.31.38-.44.51-.14.15-.3.3-.13.59.17.28.73 1.2 1.56 1.94 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.61-.06.16-.19.68-.79.87-1.06.18-.27.36-.23.6-.14s1.55.73 1.81.86c.27.14.44.21.51.32.07.12.07.65-.17 1.33Z"/></svg>`}
 function iconFollowup(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/><path d="m8.5 12 2.2 2.2L16 9.8"/></svg>`}
@@ -1900,9 +1916,17 @@ function renderNav(){
   const nav = NAV_BY_ROLE[CURRENT_USER.role] || [];
   const el = document.getElementById("navGroup");
   el.innerHTML = nav.map(n => `
-    <a href="javascript:void(0)" class="nav-item" data-page="${n.id}">${n.icon}<span>${n.label}</span></a>
+    <a href="javascript:void(0)" class="nav-item" data-page="${n.id}">${n.icon}<span>${n.label}</span>${n.id==="crm" ? `<span class="nav-count-badge" id="navCrmCount"></span>` : ``}</a>
   `).join("");
   el.querySelectorAll(".nav-item").forEach(a => a.addEventListener("click", () => goPage(a.dataset.page)));
+  updateNavCrmBadge();
+}
+async function updateNavCrmBadge(){
+  const badge = document.getElementById("navCrmCount");
+  if (!badge || !CURRENT_USER) return;
+  const { count, error } = await sb.from("crm_customers").select("id", { count:"exact", head:true });
+  if (error) return;
+  badge.textContent = (count == null) ? "" : (count > 99 ? "99+" : String(count));
 }
 
 function goPage(id){
@@ -2137,13 +2161,19 @@ async function loadDashboard(){
   }
 
   if (CURRENT_USER.role === "b2b") {
-    const { data: crm } = await sb.from("crm_customers").select("*").eq("created_by", CURRENT_USER.id).order("created_at",{ascending:false});
+    const [{ data: crm }, { data: logs }] = await Promise.all([
+      sb.from("crm_customers").select("*").eq("created_by", CURRENT_USER.id).order("created_at",{ascending:false}),
+      sb.from("crm_followup_logs").select("id,created_at,followed_up_by").eq("followed_up_by", CURRENT_USER.id),
+    ]);
     const list = crm || [];
+    const logList = logs || [];
     const startOfMonth = new Date(); startOfMonth.setDate(1); startOfMonth.setHours(0,0,0,0);
     const leadsToday = list.filter(c => (c.created_at||"").slice(0,10) === todayStr()).length;
     const leadsMonth = list.filter(c => new Date(c.created_at) >= startOfMonth).length;
+    const followupToday = logList.filter(l => (l.created_at||"").slice(0,10) === todayStr()).length;
     cards = [
       { label:"Leads hari ini", value: leadsToday },
+      { label:"Follow up hari ini", value: followupToday },
       { label:"Leads bulan ini", value: leadsMonth },
       { label:"Total leads", value: list.length },
       { label:"Perlu follow up", value: list.filter(needsFollowup).length },
@@ -2951,6 +2981,7 @@ function renderDesignKanban(){
               <span class="badge badge-gold">${taskTypeLabel(d.task_type)}</span>
             </div>
             <div class="meta"><span class="date">${d.deadline ? "Deadline "+fmtDate(d.deadline) : "Tanpa deadline"}</span></div>
+            ${d.link_url ? `<a class="result-link" href="${escapeHtml(d.link_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${iconLinkOut()}Lihat Hasil</a>` : ``}
           </div>
         `).join("") : `<div style="color:var(--muted); font-size:12.5px; text-align:center; padding:20px 0">Kosong</div>`}
       </div>
@@ -3646,7 +3677,7 @@ function setupRealtime(){
   REALTIME_CHANNEL = sb.channel("dhp-live-sync")
     .on("postgres_changes", { event:"*", schema:"public", table:"content_plan" }, () => { scheduleRealtimeRefresh("content"); if (currentPage==="crm") renderCrmNotifSummary(); })
     .on("postgres_changes", { event:"*", schema:"public", table:"content_types" }, () => scheduleRealtimeRefresh("content"))
-    .on("postgres_changes", { event:"*", schema:"public", table:"crm_customers" }, () => { scheduleRealtimeRefresh("crm"); scheduleRealtimeRefresh("ads"); })
+    .on("postgres_changes", { event:"*", schema:"public", table:"crm_customers" }, () => { scheduleRealtimeRefresh("crm"); scheduleRealtimeRefresh("ads"); updateNavCrmBadge(); if (currentPage==="crm") renderCrmNotifSummary(); })
     .on("postgres_changes", { event:"*", schema:"public", table:"crm_followup_logs" }, () => scheduleRealtimeRefresh("crm"))
     .on("postgres_changes", { event:"*", schema:"public", table:"ad_schedule" }, () => { scheduleRealtimeRefresh("ads"); if (currentPage==="crm") renderCrmNotifSummary(); })
     .on("postgres_changes", { event:"*", schema:"public", table:"design_tasks" }, () => { scheduleRealtimeRefresh("design"); if (currentPage==="crm") renderCrmNotifSummary(); })
