@@ -8,6 +8,31 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>DHP Studio</title>
+<script>
+/* Penangkap error paling awal — supaya kalau ada script yang gagal load
+   (CDN lambat/putus) atau ada bug JS lain, pesannya muncul jelas di layar
+   sebagai banner merah, bukan cuma diem/blank tanpa keterangan apa-apa. */
+(function(){
+  function showFatal(msg){
+    try{
+      let el = document.getElementById("fatalErrorBanner");
+      if (!el){
+        el = document.createElement("div");
+        el.id = "fatalErrorBanner";
+        el.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:999999;background:#dc3b57;color:#fff;padding:10px 14px;font:12px/1.5 -apple-system,Inter,sans-serif;white-space:pre-wrap;box-shadow:0 2px 10px rgba(0,0,0,.25)";
+        document.documentElement.appendChild(el);
+      }
+      el.textContent = "⚠️ Terjadi error: " + msg + "  (screenshot ini & kirim ke developer)";
+    }catch(e){}
+  }
+  window.addEventListener("error", function(e){
+    showFatal((e.message||"Unknown error") + (e.filename ? " @ "+e.filename.split("/").pop()+":"+e.lineno : ""));
+  }, true);
+  window.addEventListener("unhandledrejection", function(e){
+    showFatal("Promise gagal — " + (e.reason && e.reason.message ? e.reason.message : e.reason));
+  });
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -2187,6 +2212,13 @@ document.getElementById("btnLogout").addEventListener("click", () => {
 /* ============================================================
    BOOT APP
    ============================================================ */
+function withTimeout(promise, ms, label){
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label||"Request"} waktu tunggu habis — koneksi lambat/terputus`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
 async function bootApp(user){
   CURRENT_USER = user;
   document.getElementById("loginScreen").hidden = true;
@@ -2199,11 +2231,16 @@ async function bootApp(user){
   av.style.background = user.avatar_color || "#7B2FF7";
 
   renderNav();
-  await loadTeam();
+  // loadTeam() TIDAK di-await di sini lagi — kalau koneksi lambat/putus,
+  // halaman tetap lanjut tampil (dashboard dkk) daripada macet total cuma
+  // gara-gara satu request daftar tim yang lambat. Dropdown yang butuh
+  // nama tim akan otomatis terisi begitu loadTeam() selesai di background.
+  loadTeam().catch(() => toast("Gagal memuat daftar tim (cek koneksi)","error"));
   goPage("dashboard");
-  loadNotifications();
+  loadNotifications().catch(() => {});
   setupRealtime();
 }
+
 
 function initials(name){
   return (name || "?").trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase()).join("");
@@ -2236,7 +2273,7 @@ function goPage(id){
   document.getElementById("sidebar").classList.remove("open");
   document.getElementById("sidebarBackdrop").classList.remove("open");
 
-  if (id === "dashboard") loadDashboard();
+  if (id === "dashboard") loadDashboardGuarded();
   if (id === "summary") loadSummaryPage();
   if (id === "content") loadContent();
   if (id === "crm") loadCrm();
@@ -2269,9 +2306,10 @@ async function loadTeam(){
   // (creator & assignee dropdown pakai TEAM ini). Untuk versi awal, isi manual dari
   // seed default; kalau kamu tambah user baru lewat SQL, tambahkan juga di sini
   // ATAU ganti dengan RPC list_team() jika ingin dinamis penuh.
-  const { data, error } = await sb.rpc("list_team");
+  const { data, error } = await withTimeout(sb.rpc("list_team"), 12000, "Daftar tim");
   if (!error && data) { TEAM = data; return; }
   TEAM = [];
+  if (error) throw error;
 }
 
 function loadTeamPage(){
@@ -2416,6 +2454,22 @@ let DASH_RECENT_VISIBLE = [];
 function progressBar(label, value, total){
   const pct = total ? Math.round((value/total)*100) : 0;
   return `<div class="progress-row"><div class="pr-label">${escapeHtml(label)}</div><div class="pr-track"><div class="pr-fill" style="width:${pct}%"></div></div><div class="pr-val">${pct}% <span style="color:var(--text2)">(${value})</span></div></div>`;
+}
+function loadDashboardGuarded(){
+  withTimeout(loadDashboard(), 15000, "Dashboard").catch(err => {
+    console.warn("Dashboard gagal dimuat:", err);
+    if (!DASH_LOADED_ONCE) showDashboardError(err.message || "Koneksi lambat/terputus");
+    else toast("Gagal refresh dashboard — koneksi lambat","error");
+  });
+}
+function showDashboardError(msg){
+  const stats = document.getElementById("dashStats");
+  const recent = document.getElementById("dashRecent");
+  const progEl = document.getElementById("dashProgress");
+  const retryBtn = `<button class="btn btn-ghost btn-sm" onclick="loadDashboardGuarded()" style="margin-top:8px">Coba lagi</button>`;
+  stats.innerHTML = `<div class="stat-card" style="grid-column:1/-1"><div class="label" style="color:var(--red)">Gagal memuat data</div><div style="font-size:12px;color:var(--muted);margin-top:6px">${escapeHtml(msg)}</div>${retryBtn}</div>`;
+  recent.innerHTML = `<tr class="row-empty"><td colspan="4">Gagal memuat — cek koneksi lalu klik Coba lagi di atas</td></tr>`;
+  progEl.innerHTML = `<div style="color:var(--red); font-size:13px; padding:8px 0">Gagal memuat progress.</div>`;
 }
 let DASH_LOADED_ONCE = false;
 async function loadDashboard(){
@@ -4323,7 +4377,7 @@ function scheduleRealtimeRefresh(pageKey){
   // (itu yang bikin kartu di dashboard kedip-kedip).
   if (currentPage === "dashboard") {
     clearTimeout(REALTIME_DEBOUNCE.__dashboard);
-    REALTIME_DEBOUNCE.__dashboard = setTimeout(() => loadDashboard(), 350);
+    REALTIME_DEBOUNCE.__dashboard = setTimeout(() => loadDashboardGuarded(), 350);
   }
 }
 function reloadCurrentPageData(id){
