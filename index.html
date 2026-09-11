@@ -10,10 +10,6 @@
 <title>DHP Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
 /* ============================================================
    DHP STUDIO — token & base
@@ -1815,6 +1811,15 @@ tbody tr:hover{background:var(--surface2)}
   </div>
 </div>
 
+<!-- Library eksternal (Supabase, Excel, PDF export) sengaja diletakkan di
+     sini — paling akhir sebelum script utama — supaya browser bisa baca &
+     tampilkan seluruh CSS + HTML dulu (termasuk halaman login) tanpa nunggu
+     download dari CDN. Urutan antar-script ini tetap harus persis begini
+     karena jspdf-autotable butuh jspdf yang sudah lebih dulu ada. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <script>
 /* ============================================================
    CONFIG — ganti dengan project Supabase kamu sendiri
