@@ -2309,6 +2309,26 @@ function renderNotifBell(){
   const wrap = document.getElementById("notifBells");
   if (!wrap || !CURRENT_USER) return;
   const count = notifUnreadCount();
+  // Kalau bell-nya udah ada di DOM, cukup update badge/list-nya saja
+  // (bukan bikin ulang seluruh tombol) supaya animasi lonceng & badge
+  // tidak me-restart tiap ada notifikasi baru masuk — itu penyebab
+  // badge kelihatan kedip-kedip.
+  const existingBtn = document.getElementById("notifBellBtn");
+  if (existingBtn) {
+    existingBtn.classList.toggle("has-unread", !!count);
+    const existingDot = existingBtn.querySelector(".notif-dot");
+    if (count) {
+      const label = count > 9 ? "9+" : String(count);
+      if (existingDot) existingDot.textContent = label;
+      else existingBtn.insertAdjacentHTML("beforeend", `<span class="notif-dot">${label}</span>`);
+    } else if (existingDot) {
+      existingDot.remove();
+    }
+    const countLabel = document.querySelector("#notifPop .notif-popover-head span");
+    if (countLabel) countLabel.textContent = `${count} belum dibaca`;
+    renderNotifList();
+    return;
+  }
   wrap.innerHTML = `
     <div class="notif-bell-wrap">
       <button type="button" class="notif-bell ${count?'has-unread':''}" id="notifBellBtn" title="Notifikasi">
@@ -2380,13 +2400,19 @@ function progressBar(label, value, total){
   const pct = total ? Math.round((value/total)*100) : 0;
   return `<div class="progress-row"><div class="pr-label">${escapeHtml(label)}</div><div class="pr-track"><div class="pr-fill" style="width:${pct}%"></div></div><div class="pr-val">${pct}% <span style="color:var(--text2)">(${value})</span></div></div>`;
 }
+let DASH_LOADED_ONCE = false;
 async function loadDashboard(){
   const stats = document.getElementById("dashStats");
   const recent = document.getElementById("dashRecent");
   const progEl = document.getElementById("dashProgress");
-  stats.innerHTML = "";
-  recent.innerHTML = `<tr class="row-empty"><td colspan="4">Memuat…</td></tr>`;
-  progEl.innerHTML = `<div style="color:var(--muted); font-size:13px; padding:8px 0">Memuat progress…</div>`;
+  // Placeholder "Memuat..." cuma ditampilkan sekali di load pertama.
+  // Untuk refresh berikutnya (dipicu realtime), konten lama dibiarkan
+  // tampil sampai data baru siap — supaya tidak kedip kosong-isi-kosong.
+  if (!DASH_LOADED_ONCE) {
+    stats.innerHTML = "";
+    recent.innerHTML = `<tr class="row-empty"><td colspan="4">Memuat…</td></tr>`;
+    progEl.innerHTML = `<div style="color:var(--muted); font-size:13px; padding:8px 0">Memuat progress…</div>`;
+  }
 
   let cards = [];
   let rows = [];
@@ -2480,6 +2506,7 @@ async function loadDashboard(){
     <tr><td data-label="Item">${escapeHtml(r.item)}</td><td data-label="Tipe">${escapeHtml(r.tipe)}</td><td data-label="Status">${statusBadge(r.status)}</td><td data-label="Update">${timeAgo(r.waktu)}</td></tr>
   `).join("") : `<tr class="row-empty"><td colspan="4">Belum ada aktivitas</td></tr>`;
   DASH_RECENT_VISIBLE = rows;
+  DASH_LOADED_ONCE = true;
 }
 
 function statusBadge(status){
@@ -4271,9 +4298,16 @@ function scheduleRealtimeRefresh(pageKey){
   REALTIME_DEBOUNCE[pageKey] = setTimeout(() => {
     flashLiveIndicator();
     if (currentPage === pageKey) reloadCurrentPageData(pageKey);
-    if (currentPage === "dashboard") loadDashboard();
     if (currentPage === "summary" && ["content","design","ads"].includes(pageKey)) loadSummaryPage();
   }, 350);
+  // Reload dashboard di-debounce terpisah & dibagi bareng semua pageKey,
+  // supaya beberapa perubahan tabel yang datang hampir bersamaan cuma
+  // memicu SATU kali loadDashboard() — bukan berkali-kali berturutan
+  // (itu yang bikin kartu di dashboard kedip-kedip).
+  if (currentPage === "dashboard") {
+    clearTimeout(REALTIME_DEBOUNCE.__dashboard);
+    REALTIME_DEBOUNCE.__dashboard = setTimeout(() => loadDashboard(), 350);
+  }
 }
 function reloadCurrentPageData(id){
   if (id === "content") loadContent();
