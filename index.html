@@ -221,11 +221,15 @@ input,select,textarea{font-family:inherit}
   display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--muted);
   border:1px solid var(--border); border-radius:99px; padding:6px 12px 6px 10px; user-select:none;
 }
-.live-indicator .dot{width:7px;height:7px;border-radius:50%; background:var(--muted); flex-shrink:0; transition:background var(--trans)}
+.live-indicator .dot{width:7px;height:7px;border-radius:50%; background:var(--muted); flex-shrink:0; position:relative; transition:background var(--trans)}
 .live-indicator.on{color:var(--green); border-color:rgba(21,154,107,.3); background:rgba(21,154,107,.08)}
-.live-indicator.on .dot{background:var(--green); box-shadow:0 0 0 0 rgba(21,154,107,.55); animation:livePulse 1.8s infinite}
+.live-indicator.on .dot{background:var(--green)}
+.live-indicator.on .dot::after{
+  content:''; position:absolute; inset:0; border-radius:50%; background:var(--green);
+  animation:livePulseRing 1.8s ease-out infinite;
+}
 .live-indicator.flash .dot{animation:liveFlash .5s ease}
-@keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(21,154,107,.55)}70%{box-shadow:0 0 0 6px rgba(21,154,107,0)}100%{box-shadow:0 0 0 0 rgba(21,154,107,0)}}
+@keyframes livePulseRing{0%{transform:scale(1); opacity:.55} 70%,100%{transform:scale(3.4); opacity:0}}
 @keyframes liveFlash{0%{transform:scale(1)}40%{transform:scale(1.8);background:var(--gold-hi)}100%{transform:scale(1);background:var(--green)}}
 .logout-btn{
   display:flex; align-items:center; gap:7px; font-size:13px; font-weight:600; color:var(--red);
@@ -254,9 +258,13 @@ input,select,textarea{font-family:inherit}
   position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; padding:0 4px;
   border-radius:99px; background:var(--red); color:#fff; font-size:9.5px; font-weight:700;
   font-family:'Inter',sans-serif; display:flex; align-items:center; justify-content:center; line-height:1;
-  box-shadow:0 0 0 2px var(--bg2); animation:notifPulse 2s infinite;
+  box-shadow:0 0 0 2px var(--bg2);
 }
-@keyframes notifPulse{0%{box-shadow:0 0 0 0 rgba(220,59,87,.55),0 0 0 2px var(--bg2)}70%{box-shadow:0 0 0 5px rgba(220,59,87,0),0 0 0 2px var(--bg2)}100%{box-shadow:0 0 0 0 rgba(220,59,87,0),0 0 0 2px var(--bg2)}}
+.notif-dot-ping{
+  position:absolute; inset:0; border-radius:inherit; background:rgba(220,59,87,.6);
+  animation:notifPulseRing 2s ease-out infinite; pointer-events:none;
+}
+@keyframes notifPulseRing{0%{transform:scale(1); opacity:.6} 70%,100%{transform:scale(1.9); opacity:0}}
 .notif-popover{
   position:absolute; top:calc(100% + 10px); right:0; width:326px; max-width:88vw; max-height:min(420px,70vh);
   background:var(--surface); border:1px solid var(--border-hi); border-radius:var(--r2); box-shadow:var(--shadow);
@@ -2319,8 +2327,12 @@ function renderNotifBell(){
     const existingDot = existingBtn.querySelector(".notif-dot");
     if (count) {
       const label = count > 9 ? "9+" : String(count);
-      if (existingDot) existingDot.textContent = label;
-      else existingBtn.insertAdjacentHTML("beforeend", `<span class="notif-dot">${label}</span>`);
+      if (existingDot) {
+        const labelEl = existingDot.querySelector(".notif-dot-label");
+        if (labelEl) labelEl.textContent = label;
+      } else {
+        existingBtn.insertAdjacentHTML("beforeend", `<span class="notif-dot"><span class="notif-dot-ping"></span><span class="notif-dot-label">${label}</span></span>`);
+      }
     } else if (existingDot) {
       existingDot.remove();
     }
@@ -2332,7 +2344,7 @@ function renderNotifBell(){
   wrap.innerHTML = `
     <div class="notif-bell-wrap">
       <button type="button" class="notif-bell ${count?'has-unread':''}" id="notifBellBtn" title="Notifikasi">
-        ${iconBell()}${count ? `<span class="notif-dot">${count>9?'9+':count}</span>` : ``}
+        ${iconBell()}${count ? `<span class="notif-dot"><span class="notif-dot-ping"></span><span class="notif-dot-label">${count>9?'9+':count}</span></span>` : ``}
       </button>
       <div class="notif-popover" id="notifPop">
         <div class="notif-popover-head">
