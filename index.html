@@ -1018,6 +1018,54 @@ tbody tr:hover{background:var(--surface2)}
         </div>
       </section>
 
+      <!-- ===== LAPORAN BULANAN (moderator) — rekap konten, posting & CRM ===== -->
+      <section class="page" id="page-laporan">
+        <div class="panel" style="margin-bottom:20px; padding:20px">
+          <div class="panel-head" style="border:none; padding:0 0 16px">
+            <div>
+              <h3 style="margin-bottom:3px">Laporan Kinerja Bulanan</h3>
+              <div style="font-size:12.5px; color:var(--text2)" id="lapMonthLabel">—</div>
+            </div>
+            <div class="panel-tools">
+              <input class="input" type="month" id="lapMonth" style="width:170px">
+              <button class="btn btn-gold btn-sm" id="btnExportLaporanPdf">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>
+                Export PDF
+              </button>
+            </div>
+          </div>
+          <div class="grid-cards" id="lapStats" style="margin-bottom:0"></div>
+        </div>
+
+        <div class="panel" style="margin-bottom:20px; padding:20px">
+          <div class="panel-head" style="border:none; padding:0 0 14px">
+            <h3>Progress Konten per Tahap</h3>
+            <span style="font-size:12px; color:var(--muted)" id="lapContentTotalNote"></span>
+          </div>
+          <div id="lapContentStages"></div>
+        </div>
+
+        <div class="panel" style="margin-bottom:20px; padding:20px">
+          <div class="panel-head" style="border:none; padding:0 0 14px">
+            <h3>Progress CRM per Status</h3>
+            <span style="font-size:12px; color:var(--muted)" id="lapCrmTotalNote"></span>
+          </div>
+          <div id="lapCrmStatus"></div>
+        </div>
+
+        <div class="panel" style="padding:20px">
+          <div class="panel-head" style="border:none; padding:0 0 14px">
+            <h3>Rincian per Anggota Tim</h3>
+          </div>
+          <div class="table-responsive">
+          <table>
+            <thead><tr><th>Nama</th><th>Total Konten</th><th>Sudah Posting</th><th>On Progress</th><th>CRM Masuk</th></tr></thead>
+            <tbody id="lapTeamBody"><tr class="row-empty"><td colspan="5">Memuat…</td></tr></tbody>
+          </table>
+          </div>
+        </div>
+      </section>
+
       <!-- ===== CONTENT PLAN — KALENDER ===== -->
       <section class="page" id="page-content">
         <div class="grid-cards" id="cpStats"></div>
@@ -1867,6 +1915,7 @@ const NAV_BY_ROLE = {
   moderator: [
     { id: "dashboard", label: "Dashboard", icon: iconGrid() },
     { id: "summary",   label: "Ringkasan Harian", icon: iconSummary() },
+    { id: "laporan",   label: "Laporan Bulanan", icon: iconReport() },
     { id: "content",   label: "Rencana Konten", icon: iconCalendar() },
     { id: "crm",       label: "CRM Pelanggan", icon: iconUsers() },
     { id: "ads",       label: "Iklan & Leads", icon: iconAd() },
@@ -1901,6 +1950,7 @@ const NAV_BY_ROLE = {
 const PAGE_META = {
   dashboard: { title: "Dashboard", sub: "Ringkasan kerja hari ini" },
   summary:   { title: "Ringkasan Harian", sub: "Semua konten, desain & iklan dalam satu tanggal — tidak perlu buka satu-satu" },
+  laporan:   { title: "Laporan Bulanan", sub: "Rekap konten dikerjakan, sudah posting & CRM masuk — siap export PDF" },
   content:   { title: "Rencana Konten", sub: "Kalender & tugas konten tim" },
   crm:       { title: "CRM Pelanggan", sub: "Database pelanggan & follow up" },
   ads:       { title: "Iklan & Leads", sub: "Jadwal iklan per tanggal & input leads B2B" },
@@ -1923,6 +1973,7 @@ function iconLayers(){return `<svg viewBox="0 0 24 24" fill="none" stroke="curre
 function iconTeam(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="8" r="2.6"/><path d="M3 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><path d="M17 14.2a4 4 0 0 1 4 4V20"/></svg>`}
 function iconUser(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.6"/><path d="M4 20v-.5A6.5 6.5 0 0 1 10.5 13h3A6.5 6.5 0 0 1 20 19.5v.5"/></svg>`}
 function iconSummary(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="2.2"/><path d="M8 8h8M8 12.5h8M8 17h5"/></svg>`}
+function iconReport(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M9.5 13.5v3M12.5 11.5v5M15.5 14.5v2.5"/></svg>`}
 function iconTrash(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>`}
 function iconEdit(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`}
 function iconBell(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 6.5-2.5 8.2-2.5 8.2h17S18 14.5 18 8Z"/><path d="M13.7 20.5a2 2 0 0 1-3.4 0"/></svg>`}
@@ -2275,6 +2326,7 @@ function goPage(id){
 
   if (id === "dashboard") loadDashboardGuarded();
   if (id === "summary") loadSummaryPage();
+  if (id === "laporan") loadLaporanPage();
   if (id === "content") loadContent();
   if (id === "crm") loadCrm();
   if (id === "ads") loadAds();
@@ -2754,6 +2806,213 @@ function renderSummaryDayDetail(){
   } else {
     aWrap.innerHTML = `<div class="job-empty">Tidak ada iklan dijadwalkan di tanggal ini.</div>`;
   }
+}
+
+/* ============================================================
+   LAPORAN BULANAN (moderator) — total konten dikerjakan, sudah
+   posting, on progress, & total CRM masuk + progress per status.
+   Semua angka dihitung real-time langsung dari data content_plan
+   & crm_customers (bukan angka statis) supaya selalu akurat.
+   ============================================================ */
+const CRM_STATUS_LIST = [
+  { id:"baru",    label:"Baru" },
+  { id:"cold",    label:"Cold" },
+  { id:"warm",    label:"Warm" },
+  { id:"hot",     label:"Hot" },
+  { id:"closing", label:"Closing" },
+];
+let LAPORAN_MONTH = new Date().toISOString().slice(0,7); // "YYYY-MM"
+let LAPORAN_CACHE = null;
+
+function fmtMonthLabel(ym){
+  const [y,m] = (ym||LAPORAN_MONTH).split("-").map(Number);
+  const lbl = new Date(y, m-1, 1).toLocaleDateString("id-ID", { month:"long", year:"numeric" });
+  return lbl.charAt(0).toUpperCase() + lbl.slice(1);
+}
+function laporanMonthRange(ym){
+  const [y,m] = (ym||LAPORAN_MONTH).split("-").map(Number);
+  return { start:new Date(y, m-1, 1), end:new Date(y, m, 1) };
+}
+function inLaporanMonth(dateVal, start, end){
+  if (!dateVal) return false;
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return false;
+  return d >= start && d < end;
+}
+
+async function loadLaporanPage(){
+  const monthInput = document.getElementById("lapMonth");
+  if (monthInput && !monthInput.value) monthInput.value = LAPORAN_MONTH;
+  document.getElementById("lapMonthLabel").textContent = `Periode ${fmtMonthLabel()}`;
+
+  const { start, end } = laporanMonthRange();
+  const statsEl = document.getElementById("lapStats");
+  statsEl.innerHTML = `<div class="stat-card"><div class="label">Memuat data…</div><div class="value">—</div></div>`;
+
+  let cpAll = [], crmAll = [];
+  try{
+    const [cpRes, crmRes] = await Promise.all([
+      sb.from("content_plan").select("id,content_date,progress_stage,assigned_to"),
+      sb.from("crm_customers").select("id,created_at,status,created_by"),
+    ]);
+    cpAll = cpRes.data || [];
+    crmAll = crmRes.data || [];
+  }catch(err){
+    statsEl.innerHTML = `<div class="stat-card"><div class="label">Gagal memuat</div><div class="value" style="font-size:14px;color:var(--red)">Coba refresh</div></div>`;
+    return;
+  }
+
+  const cpList = cpAll.filter(c => inLaporanMonth(c.content_date, start, end));
+  const crmList = crmAll.filter(c => inLaporanMonth(c.created_at, start, end));
+
+  const totalContent = cpList.length;
+  const posted = cpList.filter(c => c.progress_stage === "upload").length;
+  const onProgress = totalContent - posted;
+  const totalCrm = crmList.length;
+
+  statsEl.innerHTML = `
+    <div class="stat-card"><div class="label">Total Konten Dikerjakan</div><div class="value">${totalContent}</div></div>
+    <div class="stat-card"><div class="label">Sudah Diposting</div><div class="value gold">${posted}</div></div>
+    <div class="stat-card"><div class="label">Sedang Dikerjakan (On Progress)</div><div class="value">${onProgress}</div></div>
+    <div class="stat-card"><div class="label">Total CRM Masuk</div><div class="value">${totalCrm}</div></div>
+  `;
+
+  document.getElementById("lapContentTotalNote").textContent = `Total ${totalContent} konten`;
+  document.getElementById("lapContentStages").innerHTML = totalContent
+    ? PROGRESS_STAGES.map(s => progressBar(s.label, cpList.filter(c => c.progress_stage === s.id).length, totalContent)).join("")
+    : `<div class="job-empty">Belum ada konten tercatat di bulan ini.</div>`;
+
+  document.getElementById("lapCrmTotalNote").textContent = `Total ${totalCrm} pelanggan`;
+  document.getElementById("lapCrmStatus").innerHTML = totalCrm
+    ? CRM_STATUS_LIST.map(s => progressBar(s.label, crmList.filter(c => c.status === s.id).length, totalCrm)).join("")
+    : `<div class="job-empty">Belum ada CRM masuk di bulan ini.</div>`;
+
+  const rows = TEAM
+    .map(u => {
+      const myContent = cpList.filter(c => c.assigned_to === u.id);
+      const myPosted = myContent.filter(c => c.progress_stage === "upload").length;
+      const myCrm = crmList.filter(c => c.created_by === u.id).length;
+      return { name: u.display_name, total: myContent.length, posted: myPosted, progress: myContent.length - myPosted, crm: myCrm };
+    })
+    .filter(r => r.total > 0 || r.crm > 0)
+    .sort((a,b) => (b.total + b.crm) - (a.total + a.crm));
+
+  document.getElementById("lapTeamBody").innerHTML = rows.length
+    ? rows.map(r => `
+      <tr>
+        <td data-label="Nama">${escapeHtml(r.name)}</td>
+        <td data-label="Total Konten">${r.total}</td>
+        <td data-label="Sudah Posting">${r.posted}</td>
+        <td data-label="On Progress">${r.progress}</td>
+        <td data-label="CRM Masuk">${r.crm}</td>
+      </tr>`).join("")
+    : `<tr class="row-empty"><td colspan="5">Belum ada aktivitas tercatat bulan ini.</td></tr>`;
+
+  LAPORAN_CACHE = { month: LAPORAN_MONTH, totalContent, posted, onProgress, totalCrm, cpList, crmList, rows };
+}
+
+document.getElementById("lapMonth").addEventListener("change", (e) => {
+  if (!e.target.value) return;
+  LAPORAN_MONTH = e.target.value;
+  loadLaporanPage();
+});
+
+document.getElementById("btnExportLaporanPdf").addEventListener("click", () => {
+  if (!LAPORAN_CACHE || !LAPORAN_CACHE.totalContent && !LAPORAN_CACHE.totalCrm) {
+    return toast("Belum ada data untuk diexport pada periode ini","error");
+  }
+  exportLaporanPDF(LAPORAN_CACHE);
+});
+
+function exportLaporanPDF(cache){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:"portrait", unit:"pt", format:"a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const monthLbl = fmtMonthLabel(cache.month);
+
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(28,26,46);
+  doc.text("LAPORAN KINERJA BULANAN", 40, 46);
+  doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(90,80,60);
+  doc.text(`Periode: ${monthLbl}`, 40, 65);
+  doc.setFontSize(8.5); doc.setTextColor(140,130,110);
+  doc.text(`Dicetak oleh ${CURRENT_USER?.display_name||"—"} · ${new Date().toLocaleString("id-ID")}`, 40, 80);
+  doc.setDrawColor(123,47,247); doc.setLineWidth(1);
+  doc.line(40, 88, pageW-40, 88);
+
+  doc.autoTable({
+    startY: 100,
+    head: [["Ringkasan", "Jumlah"]],
+    body: [
+      ["Total Konten Dikerjakan", String(cache.totalContent)],
+      ["Sudah Diposting", String(cache.posted)],
+      ["Sedang Dikerjakan (On Progress)", String(cache.onProgress)],
+      ["Total CRM Masuk", String(cache.totalCrm)],
+    ],
+    margin: { left:40, right:40 },
+    styles: { fontSize:9.5, cellPadding:7, textColor:[40,34,24] },
+    headStyles: { fillColor:[26,20,8], textColor:[233,211,164], fontStyle:"bold" },
+    columnStyles: { 1:{ halign:"right", fontStyle:"bold", cellWidth:100 } },
+  });
+
+  let y = doc.lastAutoTable.finalY + 24;
+  doc.setFont("helvetica","bold"); doc.setFontSize(11.5); doc.setTextColor(28,26,46);
+  doc.text("Progress Konten per Tahap", 40, y);
+  doc.autoTable({
+    startY: y + 10,
+    head: [["Tahap", "Jumlah", "% dari Total"]],
+    body: PROGRESS_STAGES.map(s => {
+      const val = cache.cpList.filter(c => c.progress_stage === s.id).length;
+      const pct = cache.totalContent ? Math.round(val / cache.totalContent * 100) : 0;
+      return [s.label, String(val), pct + "%"];
+    }),
+    margin: { left:40, right:40 },
+    styles: { fontSize:9, cellPadding:6, textColor:[40,34,24] },
+    headStyles: { fillColor:[123,47,247], textColor:[255,255,255], fontStyle:"bold" },
+  });
+
+  y = doc.lastAutoTable.finalY + 24;
+  doc.setFont("helvetica","bold"); doc.setFontSize(11.5); doc.setTextColor(28,26,46);
+  doc.text("Progress CRM per Status", 40, y);
+  doc.autoTable({
+    startY: y + 10,
+    head: [["Status", "Jumlah", "% dari Total"]],
+    body: CRM_STATUS_LIST.map(s => {
+      const val = cache.crmList.filter(c => c.status === s.id).length;
+      const pct = cache.totalCrm ? Math.round(val / cache.totalCrm * 100) : 0;
+      return [s.label, String(val), pct + "%"];
+    }),
+    margin: { left:40, right:40 },
+    styles: { fontSize:9, cellPadding:6, textColor:[40,34,24] },
+    headStyles: { fillColor:[123,47,247], textColor:[255,255,255], fontStyle:"bold" },
+  });
+
+  if (cache.rows.length){
+    y = doc.lastAutoTable.finalY + 24;
+    if (y > pageH - 160){ doc.addPage(); y = 50; }
+    doc.setFont("helvetica","bold"); doc.setFontSize(11.5); doc.setTextColor(28,26,46);
+    doc.text("Rincian per Anggota Tim", 40, y);
+    doc.autoTable({
+      startY: y + 10,
+      head: [["Nama", "Total Konten", "Sudah Posting", "On Progress", "CRM Masuk"]],
+      body: cache.rows.map(r => [r.name, String(r.total), String(r.posted), String(r.progress), String(r.crm)]),
+      margin: { left:40, right:40 },
+      styles: { fontSize:9, cellPadding:6, textColor:[40,34,24] },
+      headStyles: { fillColor:[26,20,8], textColor:[233,211,164], fontStyle:"bold" },
+    });
+  }
+
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i=1; i<=pageCount; i++){
+    doc.setPage(i);
+    doc.setDrawColor(230,222,205); doc.setLineWidth(.75);
+    doc.line(40, pageH-46, pageW-40, pageH-46);
+    doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(150,140,120);
+    doc.text("Disusun oleh Tim Liburania x Wezata", 40, pageH-30);
+    doc.text(`Halaman ${i} dari ${pageCount}`, pageW-40, pageH-30, { align:"right" });
+  }
+  doc.save(`laporan-kinerja-${cache.month}.pdf`);
+  toast("PDF laporan berhasil diunduh","success");
 }
 
 /* ============================================================
@@ -4382,6 +4641,7 @@ function scheduleRealtimeRefresh(pageKey){
 }
 function reloadCurrentPageData(id){
   if (id === "content") loadContent();
+  else if (id === "laporan") loadLaporanPage();
   else if (id === "crm") loadCrm();
   else if (id === "ads") loadAds();
   else if (id === "design") loadDesign();
@@ -4408,9 +4668,9 @@ function setupRealtime(){
   if (REALTIME_CHANNEL) return;
   setLiveIndicator();
   REALTIME_CHANNEL = sb.channel("dhp-live-sync")
-    .on("postgres_changes", { event:"*", schema:"public", table:"content_plan" }, () => { scheduleRealtimeRefresh("content"); if (currentPage==="crm") renderCrmNotifSummary(); })
+    .on("postgres_changes", { event:"*", schema:"public", table:"content_plan" }, () => { scheduleRealtimeRefresh("content"); scheduleRealtimeRefresh("laporan"); if (currentPage==="crm") renderCrmNotifSummary(); })
     .on("postgres_changes", { event:"*", schema:"public", table:"content_types" }, () => scheduleRealtimeRefresh("content"))
-    .on("postgres_changes", { event:"*", schema:"public", table:"crm_customers" }, () => { scheduleRealtimeRefresh("crm"); scheduleRealtimeRefresh("ads"); updateNavCrmBadge(); if (currentPage==="crm") renderCrmNotifSummary(); })
+    .on("postgres_changes", { event:"*", schema:"public", table:"crm_customers" }, () => { scheduleRealtimeRefresh("crm"); scheduleRealtimeRefresh("ads"); scheduleRealtimeRefresh("laporan"); updateNavCrmBadge(); if (currentPage==="crm") renderCrmNotifSummary(); })
     .on("postgres_changes", { event:"*", schema:"public", table:"crm_followup_logs" }, () => scheduleRealtimeRefresh("crm"))
     .on("postgres_changes", { event:"*", schema:"public", table:"ad_schedule" }, () => { scheduleRealtimeRefresh("ads"); if (currentPage==="crm") renderCrmNotifSummary(); })
     .on("postgres_changes", { event:"*", schema:"public", table:"design_tasks" }, () => { scheduleRealtimeRefresh("design"); if (currentPage==="crm") renderCrmNotifSummary(); })
